@@ -7,8 +7,10 @@ project(EASTL)
 #-------------------------------------------------------------------------------------------
 # Options
 #-------------------------------------------------------------------------------------------
-option(EASTL_BUILD_BENCHMARK "Enable generation of build files for benchmark" OFF)
+# option(EASTL_BUILD_BENCHMARK "Enable generation of build files for benchmark" OFF)
 option(EASTL_BUILD_TESTS "Enable generation of build files for tests" OFF)
+option(EASTL_BUILD_BENCHMARK "Enable generation of build files for benchmark" ON)
+# option(EASTL_BUILD_TESTS "Enable generation of build files for tests" ON)
 
 #-------------------------------------------------------------------------------------------
 # Sub-projects

@@ -17,14 +17,14 @@
 
 int TestIntrusiveSList()
 {
-	EASTLTest_Printf("TestIntrusiveSList\n");
+    EASTLTest_Printf("TestIntrusiveSList\n");
 
-	int nErrorCount = 0;
+    int nErrorCount = 0;
 
-	// As of this writing, we don't yet have a completed intrusive_slist implementation.
-	// The interface is in place but the implementation hasn't been done yet.
+    // As of this writing, we don't yet have a completed intrusive_slist implementation.
+    // The interface is in place but the implementation hasn't been done yet.
 
-	return nErrorCount;
+    return nErrorCount;
 }
 
 

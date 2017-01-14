@@ -20,13 +20,13 @@
 class Destructible
 {
 public:
-	~Destructible() = default;
+    ~Destructible() = default;
 
-	Destructible() = delete;
-	Destructible(const Destructible&) = delete;
-	Destructible(Destructible&&) = delete;
-	Destructible& operator=(const Destructible&) = delete;
-	Destructible& operator=(Destructible&&) = delete;
+    Destructible() = delete;
+    Destructible(const Destructible &) = delete;
+    Destructible(Destructible &&) = delete;
+    Destructible &operator=(const Destructible &) = delete;
+    Destructible &operator=(Destructible &&) = delete;
 };
 
 // Unfortunately not all compilers handle type_traits reliably correctly currently so we can't straightforwardly
@@ -43,39 +43,39 @@ static_assert(!eastl::is_move_assignable<Destructible>::value, "!eastl::is_move_
 class DefaultConstructible
 {
 public:
-	static const int defaultValue = 42;
+    static const int defaultValue = 42;
 
-	DefaultConstructible() : value(defaultValue) {}
-	~DefaultConstructible() = default;
+    DefaultConstructible() : value(defaultValue) {}
+    ~DefaultConstructible() = default;
 
-	DefaultConstructible(const DefaultConstructible&) = delete;
-	DefaultConstructible(DefaultConstructible&&) = delete;
-	DefaultConstructible& operator=(const DefaultConstructible&) = delete;
-	DefaultConstructible& operator=(DefaultConstructible&&) = delete;
+    DefaultConstructible(const DefaultConstructible &) = delete;
+    DefaultConstructible(DefaultConstructible &&) = delete;
+    DefaultConstructible &operator=(const DefaultConstructible &) = delete;
+    DefaultConstructible &operator=(DefaultConstructible &&) = delete;
 
-	const int value;
+    const int value;
 };
 
 class CopyConstructible
 {
 public:
-	static const int defaultValue = 42;
-	static CopyConstructible Create()
-	{
-		CopyConstructible x;
-		return x;
-	}
+    static const int defaultValue = 42;
+    static CopyConstructible Create()
+    {
+        CopyConstructible x;
+        return x;
+    }
 
-	CopyConstructible(const CopyConstructible&) = default;
-	~CopyConstructible() = default;
+    CopyConstructible(const CopyConstructible &) = default;
+    ~CopyConstructible() = default;
 
-	CopyConstructible& operator=(const CopyConstructible&) = delete;
-	CopyConstructible& operator=(CopyConstructible&&) = delete;
+    CopyConstructible &operator=(const CopyConstructible &) = delete;
+    CopyConstructible &operator=(CopyConstructible &&) = delete;
 
-	const int value;
+    const int value;
 
 private:
-	CopyConstructible() : value(defaultValue) {}
+    CopyConstructible() : value(defaultValue) {}
 };
 
 // Unfortunately not all compilers handle type_traits reliably correctly currently so we can't straightforwardly
@@ -85,76 +85,76 @@ static_assert(eastl::is_destructible<CopyConstructible>::value, "eastl::is_destr
 // "!eastl::is_default_constructible<CopyConstructible>::value");
 // static_assert(is_copy_constructible<CopyConstructible>::value, "is_copy_constructible<CopyConstructible>::value");
 static_assert(eastl::is_copy_constructible<CopyConstructible>::value,
-			  "eastl::is_copy_constructible<CopyConstructible>::value");
+              "eastl::is_copy_constructible<CopyConstructible>::value");
 static_assert(!eastl::is_copy_assignable<CopyConstructible>::value,
-			  "!eastl::is_copy_assignable<CopyConstructible>::value");
+              "!eastl::is_copy_assignable<CopyConstructible>::value");
 // static_assert(!eastl::is_move_constructible<CopyConstructible>::value,
 // "!eastl::is_move_constructible<CopyConstructible>::value");
 static_assert(!eastl::is_move_assignable<CopyConstructible>::value,
-			  "!eastl::is_move_assignable<CopyConstructible>::value");
+              "!eastl::is_move_assignable<CopyConstructible>::value");
 
 class MoveConstructible
 {
 public:
-	static const int defaultValue = 42;
-	static MoveConstructible Create()
-	{
-		return MoveConstructible{};
-	}
+    static const int defaultValue = 42;
+    static MoveConstructible Create()
+    {
+        return MoveConstructible{};
+    }
 
-	MoveConstructible(MoveConstructible&& x) : value(x.value) {}
-	~MoveConstructible() = default;
+    MoveConstructible(MoveConstructible &&x) : value(x.value) {}
+    ~MoveConstructible() = default;
 
-	MoveConstructible(const MoveConstructible&) = delete;
-	MoveConstructible& operator=(const MoveConstructible&) = delete;
-	MoveConstructible& operator=(MoveConstructible&&) = delete;
+    MoveConstructible(const MoveConstructible &) = delete;
+    MoveConstructible &operator=(const MoveConstructible &) = delete;
+    MoveConstructible &operator=(MoveConstructible &&) = delete;
 
-	const int value;
+    const int value;
 
 private:
-	MoveConstructible() : value(defaultValue) {}
+    MoveConstructible() : value(defaultValue) {}
 };
 
 class MoveAssignable
 {
 public:
-	static const int defaultValue = 42;
-	static MoveAssignable Create()
-	{
-		return MoveAssignable{};
-	}
+    static const int defaultValue = 42;
+    static MoveAssignable Create()
+    {
+        return MoveAssignable{};
+    }
 
-	MoveAssignable(MoveAssignable&& x) : value(x.value) {}
-	MoveAssignable& operator=(MoveAssignable&& x)
-	{
-		value = x.value;
-		return *this;
-	}
-	~MoveAssignable() = default;
+    MoveAssignable(MoveAssignable &&x) : value(x.value) {}
+    MoveAssignable &operator=(MoveAssignable &&x)
+    {
+        value = x.value;
+        return *this;
+    }
+    ~MoveAssignable() = default;
 
-	MoveAssignable(const MoveAssignable&) = delete;
-	MoveAssignable& operator=(const MoveAssignable&) = delete;
+    MoveAssignable(const MoveAssignable &) = delete;
+    MoveAssignable &operator=(const MoveAssignable &) = delete;
 
-	int value;
+    int value;
 
 private:
-	MoveAssignable() : value(defaultValue) {}
+    MoveAssignable() : value(defaultValue) {}
 };
 
 class MoveAndDefaultConstructible
 {
 public:
-	static const int defaultValue = 42;
+    static const int defaultValue = 42;
 
-	MoveAndDefaultConstructible() : value(defaultValue) {}
-	MoveAndDefaultConstructible(MoveAndDefaultConstructible&& x) : value(x.value) {}
-	~MoveAndDefaultConstructible() = default;
+    MoveAndDefaultConstructible() : value(defaultValue) {}
+    MoveAndDefaultConstructible(MoveAndDefaultConstructible &&x) : value(x.value) {}
+    ~MoveAndDefaultConstructible() = default;
 
-	MoveAndDefaultConstructible(const MoveAndDefaultConstructible&) = delete;
-	MoveAndDefaultConstructible& operator=(const MoveAndDefaultConstructible&) = delete;
-	MoveAndDefaultConstructible& operator=(MoveAndDefaultConstructible&&) = delete;
+    MoveAndDefaultConstructible(const MoveAndDefaultConstructible &) = delete;
+    MoveAndDefaultConstructible &operator=(const MoveAndDefaultConstructible &) = delete;
+    MoveAndDefaultConstructible &operator=(MoveAndDefaultConstructible &&) = delete;
 
-	const int value;
+    const int value;
 
 private:
 };

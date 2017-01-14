@@ -10,17 +10,18 @@ namespace EA
 {
     namespace EAMain
     {
-		void PlatformStartup() {}
-		void PlatformShutdown(int nErrorCount) 
-		{
-			printf("RETURNCODE=%d\n", nErrorCount);
-		}
-	}
+        void PlatformStartup() {}
+        void PlatformShutdown(int nErrorCount)
+        {
+            printf("RETURNCODE=%d\n", nErrorCount);
+        }
+    }
 }
 
-
-int EAMain(int argc, char* argv[]);
-int main(int argc, char* argv[])
-    { return EAMain(argc, argv); } 
+int EAMain(int argc, char *argv[]);
+int main(int argc, char *argv[])
+{
+    return EAMain(argc, argv);
+}
 
 #endif

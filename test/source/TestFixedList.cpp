@@ -17,7 +17,7 @@ template class eastl::fixed_list<int, 1, false, EASTLAllocatorType>;
 
 
 /*
-// This does not compile, since the fixed_list allocator is templated on sizeof(T), 
+// This does not compile, since the fixed_list allocator is templated on sizeof(T),
 // not just T. Thus, the full type is required at the time of instantiation, but it
 // is not available.
 // See EATech Core JIRA issue ETCR-1608 for more information.
@@ -30,584 +30,597 @@ struct StructWithContainerOfStructs
 
 namespace FixedListTest
 {
-	struct Item
-	{
-	   char mName[5];
-	};
+    struct Item {
+        char mName[5];
+    };
 }
 
 
 EA_DISABLE_VC_WARNING(6262)
 int TestFixedList()
 {
-	EASTLTest_Printf("TestFixedList\n");
-
-	int nErrorCount = 0;
-
-	{
-		// Test version *without* pool overflow.
-		typedef fixed_list<int, 64, false> FixedListInt64False;
-
-		FixedListInt64False listInt64;
-		VERIFY(listInt64.empty());
-		VERIFY(listInt64.size() == 0);
-		VERIFY(listInt64.max_size() == 64);
-
-		listInt64.push_back(1);
-		VERIFY(!listInt64.empty());
-		VERIFY(listInt64.size() == 1);
-
-		listInt64.resize(3, 2);
-		VERIFY(!listInt64.empty());
-		VERIFY(listInt64.size() == 3);
-
-		FixedListInt64False::iterator i = listInt64.begin();
-		VERIFY(*i == 1); ++i;
-		VERIFY(*i == 2); ++i;
-		VERIFY(*i == 2); ++i;
-		VERIFY(i == listInt64.end());
-
-		listInt64.resize(0);
-		VERIFY(listInt64.empty());
-		VERIFY(listInt64.size() == 0);
-
-		while(listInt64.size() < 64)
-			listInt64.push_back(0);
-
-		// Verify that we allocated enough space for exactly N items. 
-		// It's possible that due to alignments, there might be room for N + 1.
-		FixedListInt64False::allocator_type& allocator = listInt64.get_allocator();
-		void* pResult = allocator.allocate(sizeof(FixedListInt64False::node_type));
-		if(pResult)
-		{
-			pResult = allocator.allocate(sizeof(FixedListInt64False::node_type));
-			VERIFY(pResult == NULL); 
-		}
-	}
-
-
-	{
-		// Test version *with* pool overflow.
-		typedef fixed_list<int, 64, true> FixedListInt64True;
-
-		FixedListInt64True listInt64;
-		VERIFY(listInt64.empty());
-		VERIFY(listInt64.size() == 0);
-
-		listInt64.push_back(1);
-		VERIFY(!listInt64.empty());
-		VERIFY(listInt64.size() == 1);
-
-		listInt64.resize(3, 2);
-		VERIFY(!listInt64.empty());
-		VERIFY(listInt64.size() == 3);
-
-		FixedListInt64True::iterator i = listInt64.begin();
-		VERIFY(*i == 1); ++i;
-		VERIFY(*i == 2); ++i;
-		VERIFY(*i == 2); ++i;
-		VERIFY(i == listInt64.end());
+    EASTLTest_Printf("TestFixedList\n");
+
+    int nErrorCount = 0;
+
+    {
+        // Test version *without* pool overflow.
+        typedef fixed_list<int, 64, false> FixedListInt64False;
+
+        FixedListInt64False listInt64;
+        VERIFY(listInt64.empty());
+        VERIFY(listInt64.size() == 0);
+        VERIFY(listInt64.max_size() == 64);
+
+        listInt64.push_back(1);
+        VERIFY(!listInt64.empty());
+        VERIFY(listInt64.size() == 1);
+
+        listInt64.resize(3, 2);
+        VERIFY(!listInt64.empty());
+        VERIFY(listInt64.size() == 3);
+
+        FixedListInt64False::iterator i = listInt64.begin();
+        VERIFY(*i == 1);
+        ++i;
+        VERIFY(*i == 2);
+        ++i;
+        VERIFY(*i == 2);
+        ++i;
+        VERIFY(i == listInt64.end());
+
+        listInt64.resize(0);
+        VERIFY(listInt64.empty());
+        VERIFY(listInt64.size() == 0);
+
+        while(listInt64.size() < 64) {
+            listInt64.push_back(0);
+        }
+
+        // Verify that we allocated enough space for exactly N items.
+        // It's possible that due to alignments, there might be room for N + 1.
+        FixedListInt64False::allocator_type &allocator = listInt64.get_allocator();
+        void *pResult = allocator.allocate(sizeof(FixedListInt64False::node_type));
+
+        if(pResult) {
+            pResult = allocator.allocate(sizeof(FixedListInt64False::node_type));
+            VERIFY(pResult == NULL);
+        }
+    }
+
+
+    {
+        // Test version *with* pool overflow.
+        typedef fixed_list<int, 64, true> FixedListInt64True;
+
+        FixedListInt64True listInt64;
+        VERIFY(listInt64.empty());
+        VERIFY(listInt64.size() == 0);
+
+        listInt64.push_back(1);
+        VERIFY(!listInt64.empty());
+        VERIFY(listInt64.size() == 1);
+
+        listInt64.resize(3, 2);
+        VERIFY(!listInt64.empty());
+        VERIFY(listInt64.size() == 3);
+
+        FixedListInt64True::iterator i = listInt64.begin();
+        VERIFY(*i == 1);
+        ++i;
+        VERIFY(*i == 2);
+        ++i;
+        VERIFY(*i == 2);
+        ++i;
+        VERIFY(i == listInt64.end());
+
+        listInt64.resize(0);
+        VERIFY(listInt64.empty());
+        VERIFY(listInt64.size() == 0);
+
+        while(listInt64.size() < 64 + 16) {
+            listInt64.push_back(0);
+        }
+
+        FixedListInt64True::allocator_type &allocator = listInt64.get_allocator();
+        void *pResult = allocator.allocate(sizeof(FixedListInt64True::node_type));
+        VERIFY(pResult != NULL);
+        allocator.deallocate(pResult, sizeof(FixedListInt64True::node_type));
 
-		listInt64.resize(0);
-		VERIFY(listInt64.empty());
-		VERIFY(listInt64.size() == 0);
+        // get_overflow_allocator / set_overflow_allocator
+        // This is a weak test which should be improved.
+        EASTLAllocatorType a = listInt64.get_allocator().get_overflow_allocator();
+        listInt64.get_allocator().set_overflow_allocator(a);
+    }
+
+
+    {
+        // Test version *with* pool overflow with a custom overlow allocator specification.
+        typedef fixed_list<int, 64, true, MallocAllocator> FixedListInt64TrueMalloc;
+
+        FixedListInt64TrueMalloc listInt64;
+        VERIFY(listInt64.empty());
+        VERIFY(listInt64.size() == 0);
 
-		while(listInt64.size() < 64 + 16)
-			listInt64.push_back(0);
+        listInt64.push_back(1);
+        VERIFY(!listInt64.empty());
+        VERIFY(listInt64.size() == 1);
 
-		FixedListInt64True::allocator_type& allocator = listInt64.get_allocator();
-		void* pResult = allocator.allocate(sizeof(FixedListInt64True::node_type));
-		VERIFY(pResult != NULL);
-		allocator.deallocate(pResult, sizeof(FixedListInt64True::node_type));
+        listInt64.resize(3, 2);
+        VERIFY(!listInt64.empty());
+        VERIFY(listInt64.size() == 3);
 
-		// get_overflow_allocator / set_overflow_allocator
-		// This is a weak test which should be improved.
-		EASTLAllocatorType a = listInt64.get_allocator().get_overflow_allocator();
-		listInt64.get_allocator().set_overflow_allocator(a);
-	}
+        FixedListInt64TrueMalloc::iterator i = listInt64.begin();
+        VERIFY(*i == 1);
+        ++i;
+        VERIFY(*i == 2);
+        ++i;
+        VERIFY(*i == 2);
+        ++i;
+        VERIFY(i == listInt64.end());
 
+        listInt64.resize(0);
+        VERIFY(listInt64.empty());
+        VERIFY(listInt64.size() == 0);
 
-	{
-		// Test version *with* pool overflow with a custom overlow allocator specification.
-		typedef fixed_list<int, 64, true, MallocAllocator> FixedListInt64TrueMalloc;
+        while(listInt64.size() < 64 + 16) {
+            listInt64.push_back(0);
+        }
 
-		FixedListInt64TrueMalloc listInt64;
-		VERIFY(listInt64.empty());
-		VERIFY(listInt64.size() == 0);
+        FixedListInt64TrueMalloc::allocator_type &allocator = listInt64.get_allocator();
+        void *pResult = allocator.allocate(sizeof(FixedListInt64TrueMalloc::node_type));
+        VERIFY(pResult != NULL);
+        allocator.deallocate(pResult, sizeof(FixedListInt64TrueMalloc::node_type));
+    }
 
-		listInt64.push_back(1);
-		VERIFY(!listInt64.empty());
-		VERIFY(listInt64.size() == 1);
+    {
+        // Test fixed list with overflow and alignment requirements.
+        typedef fixed_list<Align64, 1, true, CustomAllocator> FixedListWithAlignment;
 
-		listInt64.resize(3, 2);
-		VERIFY(!listInt64.empty());
-		VERIFY(listInt64.size() == 3);
+        FixedListWithAlignment fl;
 
-		FixedListInt64TrueMalloc::iterator i = listInt64.begin();
-		VERIFY(*i == 1); ++i;
-		VERIFY(*i == 2); ++i;
-		VERIFY(*i == 2); ++i;
-		VERIFY(i == listInt64.end());
+        Align64 a;
 
-		listInt64.resize(0);
-		VERIFY(listInt64.empty());
-		VERIFY(listInt64.size() == 0);
+        fl.push_back(a);
+        fl.push_back(a);
+        fl.push_back(a);
+        fl.push_back(a);
+        fl.push_back(a);
 
-		while(listInt64.size() < 64 + 16)
-			listInt64.push_back(0);
+        for (FixedListWithAlignment::const_iterator it = fl.begin(); it != fl.end(); ++it) {
+            const Align64 *ptr = &(*it);
+            EATEST_VERIFY((uint64_t)ptr % EASTL_ALIGN_OF(Align64) == 0);
+        }
+    }
 
-		FixedListInt64TrueMalloc::allocator_type& allocator = listInt64.get_allocator();
-		void* pResult = allocator.allocate(sizeof(FixedListInt64TrueMalloc::node_type));
-		VERIFY(pResult != NULL);
-		allocator.deallocate(pResult, sizeof(FixedListInt64TrueMalloc::node_type));
-	}
+    {
+        // swap
 
-	{
-		// Test fixed list with overflow and alignment requirements.
-		typedef fixed_list<Align64, 1, true, CustomAllocator> FixedListWithAlignment;
+        fixed_list<int, 64> *pListInt64A = new fixed_list<int, 64>;
+        fixed_list<int, 64> *pListInt64B = new fixed_list<int, 64>;
 
-		FixedListWithAlignment fl;
+        pListInt64A->push_back(0);
+        pListInt64B->push_back(0);
 
-		Align64 a;
+        swap(*pListInt64A, *pListInt64B);
 
-		fl.push_back(a);
-		fl.push_back(a);
-		fl.push_back(a);
-		fl.push_back(a);
-		fl.push_back(a);
-		for (FixedListWithAlignment::const_iterator it = fl.begin(); it != fl.end(); ++it)
-		{
-			const Align64* ptr = &(*it);
-			EATEST_VERIFY((uint64_t)ptr % EASTL_ALIGN_OF(Align64) == 0);
-		}
-	}
+        delete pListInt64A;
+        delete pListInt64B;
+    }
 
-	{
-		// swap
 
-		fixed_list<int, 64>* pListInt64A = new fixed_list<int, 64>;
-		fixed_list<int, 64>* pListInt64B = new fixed_list<int, 64>;
+    {
+        // operator=
 
-		pListInt64A->push_back(0);
-		pListInt64B->push_back(0);
+        fixed_list<int, 64> *pListInt64A = new fixed_list<int, 64>;
+        fixed_list<int, 64> *pListInt64B = new fixed_list<int, 64>;
 
-		swap(*pListInt64A, *pListInt64B);
+        pListInt64A->push_back(0);
+        pListInt64B->push_back(0);
 
-		delete pListInt64A;
-		delete pListInt64B;
-	}
+        *pListInt64A = *pListInt64B;
 
+        delete pListInt64A;
+        delete pListInt64B;
+    }
 
-	{
-		// operator=
 
-		fixed_list<int, 64>* pListInt64A = new fixed_list<int, 64>;
-		fixed_list<int, 64>* pListInt64B = new fixed_list<int, 64>;
+    {
+        // bool empty() const
+        // bool has_overflowed() const
+        // size_type size() const;
+        // size_type max_size() const
 
-		pListInt64A->push_back(0);
-		pListInt64B->push_back(0);
+        // Test a list that has overflow disabled.
+        fixed_list<int, 5, false> listInt5;
 
-		*pListInt64A = *pListInt64B;
+        VERIFY(listInt5.max_size() == 5);
+        VERIFY(listInt5.size() == 0);
+        VERIFY(listInt5.empty());
+        VERIFY(!listInt5.has_overflowed());
 
-		delete pListInt64A;
-		delete pListInt64B;
-	}
+        listInt5.push_back(37);
+        listInt5.push_back(37);
+        listInt5.push_back(37);
 
+        VERIFY(listInt5.size() == 3);
+        VERIFY(!listInt5.empty());
+        VERIFY(!listInt5.has_overflowed());
 
-	{
-		// bool empty() const
-		// bool has_overflowed() const
-		// size_type size() const;
-		// size_type max_size() const
+        listInt5.push_back(37);
+        listInt5.push_back(37);
 
-		// Test a list that has overflow disabled.
-		fixed_list<int, 5, false> listInt5;
+        VERIFY(listInt5.size() == 5);
+        VERIFY(!listInt5.empty());
+        VERIFY(!listInt5.has_overflowed());
 
-		VERIFY(listInt5.max_size() == 5);
-		VERIFY(listInt5.size() == 0);
-		VERIFY(listInt5.empty());
-		VERIFY(!listInt5.has_overflowed());
+        listInt5.pop_back();
 
-		listInt5.push_back(37);
-		listInt5.push_back(37);
-		listInt5.push_back(37);
+        VERIFY(listInt5.size() == 4);
+        VERIFY(!listInt5.empty());
+        VERIFY(!listInt5.has_overflowed());
+    }
 
-		VERIFY(listInt5.size() == 3);
-		VERIFY(!listInt5.empty());
-		VERIFY(!listInt5.has_overflowed());
 
-		listInt5.push_back(37);
-		listInt5.push_back(37);
+    {
+        // bool empty() const
+        // bool has_overflowed() const
+        // size_type size() const;
+        // size_type max_size() const
 
-		VERIFY(listInt5.size() == 5);
-		VERIFY(!listInt5.empty());
-		VERIFY(!listInt5.has_overflowed());
+        // Test a list that has overflow enabled.
+        fixed_list<int, 5, true> listInt5;
 
-		listInt5.pop_back();
+        VERIFY(listInt5.max_size() == 5);
+        VERIFY(listInt5.size() == 0);
+        VERIFY(listInt5.empty());
+        VERIFY(!listInt5.has_overflowed());
 
-		VERIFY(listInt5.size() == 4);
-		VERIFY(!listInt5.empty());
-		VERIFY(!listInt5.has_overflowed());
-	}
+        listInt5.push_back(37);
+        listInt5.push_back(37);
+        listInt5.push_back(37);
 
+        VERIFY(listInt5.size() == 3);
+        VERIFY(!listInt5.empty());
+        VERIFY(!listInt5.has_overflowed());
 
-	{
-		// bool empty() const
-		// bool has_overflowed() const
-		// size_type size() const;
-		// size_type max_size() const
+        listInt5.push_back(37);
+        listInt5.push_back(37);
 
-		// Test a list that has overflow enabled.
-		fixed_list<int, 5, true> listInt5;
+        VERIFY(listInt5.size() == 5);
+        VERIFY(!listInt5.empty());
+        VERIFY(!listInt5.has_overflowed());
 
-		VERIFY(listInt5.max_size() == 5);
-		VERIFY(listInt5.size() == 0);
-		VERIFY(listInt5.empty());
-		VERIFY(!listInt5.has_overflowed());
+        listInt5.push_back(37);
 
-		listInt5.push_back(37);
-		listInt5.push_back(37);
-		listInt5.push_back(37);
+        VERIFY(listInt5.size() == 6);
+        VERIFY(!listInt5.empty());
+        VERIFY(listInt5.has_overflowed());
 
-		VERIFY(listInt5.size() == 3);
-		VERIFY(!listInt5.empty());
-		VERIFY(!listInt5.has_overflowed());
+        listInt5.pop_back();
 
-		listInt5.push_back(37);
-		listInt5.push_back(37);
+        VERIFY(listInt5.size() == 5);
+        VERIFY(!listInt5.empty());
+        //VERIFY(listInt5.has_overflowed());  Disabled because currently has_overflowed can't detect this situation in non-debug builds.
+    }
 
-		VERIFY(listInt5.size() == 5);
-		VERIFY(!listInt5.empty());
-		VERIFY(!listInt5.has_overflowed());
+    {
+        //template <typename Compare>
+        //void merge(this_type& x, Compare compare);
+        //void unique();
+        //template <typename BinaryPredicate>
+        //void unique(BinaryPredicate);
+        //void sort();
+        //template<typename Compare>
+        //void sort(Compare compare);
 
-		listInt5.push_back(37);
+        const int A[] = {1, 2, 3, 4, 5, 6};
+        const int B[] = {12, 15, 13, 14, 11};
+        const int C[] = {11, 12, 13, 14, 15};
+        const int D[] = {1, 11, 2, 12, 3, 13, 4, 14, 5, 15, 6};
+        const int N = sizeof(A) / sizeof(A[0]);
+        const int M = sizeof(B) / sizeof(B[0]);
+        const int Q = sizeof(D) / sizeof(D[0]);
 
-		VERIFY(listInt5.size() == 6);
-		VERIFY(!listInt5.empty());
-		VERIFY(listInt5.has_overflowed());
+        fixed_list<int, 32, true> list0401(A, A + N);
+        fixed_list<int, 32, true> list0402(B, B + M);
+        fixed_list<int, 32, true> list0403(C, C + M);
+        fixed_list<int, 32, true> list0404(D, D + Q);
+        fixed_list<int, 32, true> list0405(A, A + N);
 
-		listInt5.pop_back();
+        list0402.sort(eastl::less<int>());
+        VERIFY(list0402 == list0403);
+
+        list0401.merge(list0402, eastl::less<int>());
+        list0404.sort();
 
-		VERIFY(listInt5.size() == 5);
-		VERIFY(!listInt5.empty());
-	  //VERIFY(listInt5.has_overflowed());  Disabled because currently has_overflowed can't detect this situation in non-debug builds.
-	}
+        //merge and isn't yet working for fixed_list.
+        //VERIFY(list0401 == list0404);
 
-	{
-		//template <typename Compare>
-		//void merge(this_type& x, Compare compare);
-		//void unique();
-		//template <typename BinaryPredicate>
-		//void unique(BinaryPredicate);
-		//void sort();
-		//template<typename Compare>
-		//void sort(Compare compare);
+        VERIFY(list0401.validate());
+        VERIFY(list0402.validate());
+        VERIFY(list0403.validate());
+        VERIFY(list0404.validate());
+        VERIFY(list0405.validate());
+    }
 
-		const int A[] = {1, 2, 3, 4, 5, 6};
-		const int B[] = {12, 15, 13, 14, 11};
-		const int C[] = {11, 12, 13, 14, 15};
-		const int D[] = {1, 11, 2, 12, 3, 13, 4, 14, 5, 15, 6};
-		const int N = sizeof(A) / sizeof(A[0]);
-		const int M = sizeof(B) / sizeof(B[0]);
-		const int Q = sizeof(D) / sizeof(D[0]);
 
-		fixed_list<int, 32, true> list0401(A, A + N);
-		fixed_list<int, 32, true> list0402(B, B + M);
-		fixed_list<int, 32, true> list0403(C, C + M);
-		fixed_list<int, 32, true> list0404(D, D + Q);
-		fixed_list<int, 32, true> list0405(A, A + N);
+    {
+        // void sort()
+        // void sort(Compare compare)
+
+        const int kSize = 10;
+        const int A[kSize] = { 1, 9, 2, 3, 5, 7, 4, 6, 8, 0 };
 
-		list0402.sort(eastl::less<int>());
-		VERIFY(list0402 == list0403);
+        fixed_list<int, 32, true> listEmpty;
+        VERIFY(VerifySequence(listEmpty.begin(), listEmpty.end(), int(), "fixed_list::sort", -1));
+        listEmpty.sort();
+        VERIFY(VerifySequence(listEmpty.begin(), listEmpty.end(), int(), "fixed_list::sort", -1));
 
-		list0401.merge(list0402, eastl::less<int>());
-		list0404.sort();
+        fixed_list<int, 32, true> list1(A, A + 1);
+        VERIFY(VerifySequence(list1.begin(), list1.end(), int(), "fixed_list::sort", 1, -1));
+        list1.sort();
+        VERIFY(VerifySequence(list1.begin(), list1.end(), int(), "fixed_list::sort", 1, -1));
 
-		//merge and isn't yet working for fixed_list.
-		//VERIFY(list0401 == list0404);
+        fixed_list<int, 32, true> list4(A, A + 4);
+        VERIFY(VerifySequence(list4.begin(), list4.end(), int(), "fixed_list::sort", 1, 9, 2, 3, -1));
+        list4.sort();
+        VERIFY(VerifySequence(list4.begin(), list4.end(), int(), "fixed_list::sort", 1, 2, 3, 9, -1));
 
-		VERIFY(list0401.validate());
-		VERIFY(list0402.validate());
-		VERIFY(list0403.validate());
-		VERIFY(list0404.validate());
-		VERIFY(list0405.validate());
-	}
+        fixed_list<int, 32, true> listA(A, A + kSize);
+        VERIFY(VerifySequence(listA.begin(), listA.end(), int(), "fixed_list::sort", 1, 9, 2, 3, 5, 7, 4, 6, 8, 0, -1));
+        listA.sort();
+        VERIFY(VerifySequence(listA.begin(), listA.end(), int(), "fixed_list::sort", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -1));
 
+        listA.assign(A, A + kSize);
+        VERIFY(VerifySequence(listA.begin(), listA.end(), int(), "fixed_list::sort", 1, 9, 2, 3, 5, 7, 4, 6, 8, 0, -1));
+        listA.sort(eastl::less<int>());
+        VERIFY(VerifySequence(listA.begin(), listA.end(), int(), "fixed_list::sort", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -1));
+    }
 
-	{
-		// void sort()
-		// void sort(Compare compare)
 
-		const int kSize = 10;
-		const int A[kSize] = { 1, 9, 2, 3, 5, 7, 4, 6, 8, 0 };
+    {
+        // void merge(this_type& x);
+        // void merge(this_type& x, Compare compare);
 
-		fixed_list<int, 32, true> listEmpty;
-		VERIFY(VerifySequence(listEmpty.begin(), listEmpty.end(), int(), "fixed_list::sort", -1));
-		listEmpty.sort();
-		VERIFY(VerifySequence(listEmpty.begin(), listEmpty.end(), int(), "fixed_list::sort", -1));
+        const int kSize = 8;
+        const int A[kSize] = { 1, 2, 3, 4, 4, 5, 9, 9 };
+        const int B[kSize] = { 1, 2, 3, 4, 4, 5, 9, 9 };
+
+        fixed_list<int, 32, true> listA(A, A + kSize);
+        fixed_list<int, 32, true> listB(B, B + kSize);
+
+        listA.merge(listB);
+
+        //merge and isn't yet working for fixed_list.
+        //VERIFY(VerifySequence(listA.begin(), listA.end(), int(), "fixed_list::merge", 1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 5, 5, 9, 9, 9, 9, -1));
+        //VERIFY(VerifySequence(listB.begin(), listB.end(), int(), "fixed_list::merge", -1));
+    }
+
+
+    {
+        // void splice(iterator position, this_type& x);
+        // void splice(iterator position, this_type& x, iterator i);
+        // void splice(iterator position, this_type& x, iterator first, iterator last);
+
+        const int kSize = 8;
+        const int A[kSize] = { 1, 2, 3, 4, 4, 5, 9, 9 };
+        const int B[kSize] = { 1, 2, 3, 4, 4, 5, 9, 9 };
+
+        fixed_list<int, 32, true> listA(A, A + kSize);
+        fixed_list<int, 32, true> listB(B, B + kSize);
+        fixed_list<int, 32, true>::iterator it;
+
+        // void splice(iterator position, this_type& x);
+        it = listA.begin();
+        eastl::advance(it, 2);
+        listA.splice(it, listB); // move listB into listA at position it.
+        VERIFY(VerifySequence(listA.begin(), listA.end(), int(), "fixed_list::splice", 1, 2, 1, 2, 3, 4, 4, 5, 9, 9, 3, 4, 4, 5, 9, 9, -1));
+        VERIFY(VerifySequence(listB.begin(), listB.end(), int(), "fixed_list::splice", -1));
+
+        // void splice(iterator position, this_type& x, iterator i);
+        it = listA.begin();
+        eastl::advance(it, 6);
+        listB.splice(listB.begin(), listA, it);     // move listA's it (6th element) into the front of listB.
+        VERIFY(VerifySequence(listA.begin(), listA.end(), int(), "fixed_list::splice", 1, 2, 1, 2, 3, 4, 5, 9, 9, 3, 4, 4, 5, 9, 9, -1));
+        VERIFY(VerifySequence(listB.begin(), listB.end(), int(), "fixed_list::splice", 4, -1));
+
+        // void splice(iterator position, this_type& x, iterator first, iterator last);
+        listA.splice(listA.end(), listB, listB.begin(), listB.end()); // move listB into listA at the end of listA.
+        VERIFY(VerifySequence(listA.begin(), listA.end(), int(), "fixed_list::splice", 1, 2, 1, 2, 3, 4, 5, 9, 9, 3, 4, 4, 5, 9, 9, 4, -1));
+        VERIFY(VerifySequence(listB.begin(), listB.end(), int(), "fixed_list::splice", -1));
+    }
+
 
-		fixed_list<int, 32, true> list1(A, A + 1);
-		VERIFY(VerifySequence(list1.begin(), list1.end(), int(), "fixed_list::sort", 1, -1));
-		list1.sort();
-		VERIFY(VerifySequence(list1.begin(), list1.end(), int(), "fixed_list::sort", 1, -1));
+    {
+        // void unique();
+        // void unique(BinaryPredicate);
 
-		fixed_list<int, 32, true> list4(A, A + 4);
-		VERIFY(VerifySequence(list4.begin(), list4.end(), int(), "fixed_list::sort", 1, 9, 2, 3, -1));
-		list4.sort();
-		VERIFY(VerifySequence(list4.begin(), list4.end(), int(), "fixed_list::sort", 1, 2, 3, 9, -1));
+        const int kSize = 8;
+        const int A[kSize] = { 1, 2, 3, 4, 4, 5, 9, 9 };
+        const int B[kSize] = { 1, 2, 3, 4, 4, 5, 9, 9 };
 
-		fixed_list<int, 32, true> listA(A, A + kSize);
-		VERIFY(VerifySequence(listA.begin(), listA.end(), int(), "fixed_list::sort", 1, 9, 2, 3, 5, 7, 4, 6, 8, 0, -1));
-		listA.sort();
-		VERIFY(VerifySequence(listA.begin(), listA.end(), int(), "fixed_list::sort", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -1));
+        fixed_list<int, 32, true> listA(A, A + kSize);
+        listA.unique();
+        VERIFY(VerifySequence(listA.begin(), listA.end(), int(), "fixed_list::unique", 1, 2, 3, 4, 5, 9, -1));
 
-		listA.assign(A, A + kSize);
-		VERIFY(VerifySequence(listA.begin(), listA.end(), int(), "fixed_list::sort", 1, 9, 2, 3, 5, 7, 4, 6, 8, 0, -1));
-		listA.sort(eastl::less<int>());
-		VERIFY(VerifySequence(listA.begin(), listA.end(), int(), "fixed_list::sort", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -1));
-	}
+        fixed_list<int, 32, true> listB(B, B + kSize);
+        listB.unique(eastl::equal_to<int>());
+        VERIFY(VerifySequence(listA.begin(), listA.end(), int(), "fixed_list::unique", 1, 2, 3, 4, 5, 9, -1));
+    }
 
 
-	{
-		// void merge(this_type& x);
-		// void merge(this_type& x, Compare compare);
+    {
+        // fixed_list(this_type&& x);
+        // fixed_list(this_type&&, const allocator_type&);
+        // this_type& operator=(this_type&& x);
 
-		const int kSize = 8;
-		const int A[kSize] = { 1, 2, 3, 4, 4, 5, 9, 9 };
-		const int B[kSize] = { 1, 2, 3, 4, 4, 5, 9, 9 };
-
-		fixed_list<int, 32, true> listA(A, A + kSize);
-		fixed_list<int, 32, true> listB(B, B + kSize);
-
-		listA.merge(listB);
-
-		//merge and isn't yet working for fixed_list.
-		//VERIFY(VerifySequence(listA.begin(), listA.end(), int(), "fixed_list::merge", 1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 5, 5, 9, 9, 9, 9, -1));
-		//VERIFY(VerifySequence(listB.begin(), listB.end(), int(), "fixed_list::merge", -1));
-	}
-
-
-	{
-		// void splice(iterator position, this_type& x);
-		// void splice(iterator position, this_type& x, iterator i);
-		// void splice(iterator position, this_type& x, iterator first, iterator last);
+#if EASTL_MOVE_SEMANTICS_ENABLED
+        fixed_list<TestObject, 16> list3TO33(3, TestObject(33));
+        fixed_list<TestObject, 16> toListA(eastl::move(list3TO33));
+        EATEST_VERIFY((toListA.size() == 3) && (toListA.front().mX == 33) /* && (list3TO33.size() == 0) fixed_list usually can't honor the move request. */);
 
-		const int kSize = 8;
-		const int A[kSize] = { 1, 2, 3, 4, 4, 5, 9, 9 };
-		const int B[kSize] = { 1, 2, 3, 4, 4, 5, 9, 9 };
-
-		fixed_list<int, 32, true> listA(A, A + kSize);
-		fixed_list<int, 32, true> listB(B, B + kSize);
-		fixed_list<int, 32, true>::iterator it;
-
-		// void splice(iterator position, this_type& x);
-		it = listA.begin(); eastl::advance(it, 2);
-		listA.splice(it, listB); // move listB into listA at position it.
-		VERIFY(VerifySequence(listA.begin(), listA.end(), int(), "fixed_list::splice", 1, 2, 1, 2, 3, 4, 4, 5, 9, 9, 3, 4, 4, 5, 9, 9, -1));
-		VERIFY(VerifySequence(listB.begin(), listB.end(), int(), "fixed_list::splice", -1));
-
-		// void splice(iterator position, this_type& x, iterator i);
-		it = listA.begin(); eastl::advance(it, 6);
-		listB.splice(listB.begin(), listA, it);     // move listA's it (6th element) into the front of listB.
-		VERIFY(VerifySequence(listA.begin(), listA.end(), int(), "fixed_list::splice", 1, 2, 1, 2, 3, 4, 5, 9, 9, 3, 4, 4, 5, 9, 9, -1));
-		VERIFY(VerifySequence(listB.begin(), listB.end(), int(), "fixed_list::splice", 4, -1));
-
-		// void splice(iterator position, this_type& x, iterator first, iterator last);
-		listA.splice(listA.end(), listB, listB.begin(), listB.end()); // move listB into listA at the end of listA.
-		VERIFY(VerifySequence(listA.begin(), listA.end(), int(), "fixed_list::splice", 1, 2, 1, 2, 3, 4, 5, 9, 9, 3, 4, 4, 5, 9, 9, 4, -1));
-		VERIFY(VerifySequence(listB.begin(), listB.end(), int(), "fixed_list::splice", -1));
-	}
-
-
-	{
-		// void unique();
-		// void unique(BinaryPredicate);
-
-		const int kSize = 8;
-		const int A[kSize] = { 1, 2, 3, 4, 4, 5, 9, 9 };
-		const int B[kSize] = { 1, 2, 3, 4, 4, 5, 9, 9 };
-
-		fixed_list<int, 32, true> listA(A, A + kSize);
-		listA.unique();
-		VERIFY(VerifySequence(listA.begin(), listA.end(), int(), "fixed_list::unique", 1, 2, 3, 4, 5, 9, -1));
-
-		fixed_list<int, 32, true> listB(B, B + kSize);
-		listB.unique(eastl::equal_to<int>());
-		VERIFY(VerifySequence(listA.begin(), listA.end(), int(), "fixed_list::unique", 1, 2, 3, 4, 5, 9, -1));
-	}
+        // The following is not as strong a test of this ctor as it could be. A stronger test would be to use IntanceAllocator with different instances.
+        fixed_list<TestObject, 16, true, MallocAllocator> list4TO44(4, TestObject(44));
+        fixed_list<TestObject, 16, true, MallocAllocator> toListB(eastl::move(list4TO44), MallocAllocator());
+        EATEST_VERIFY((toListB.size() == 4) && (toListB.front().mX == 44) /* && (list4TO44.size() == 0) fixed_list usually can't honor the move request. */);
 
+        fixed_list<TestObject, 16, true, MallocAllocator> list5TO55(5, TestObject(55));
+        toListB = eastl::move(list5TO55);
+        EATEST_VERIFY((toListB.size() == 5) && (toListB.front().mX == 55) /* && (list5TO55.size() == 0) fixed_list usually can't honor the move request. */);
+#endif
+    }
 
-	{
-		// fixed_list(this_type&& x);
-		// fixed_list(this_type&&, const allocator_type&);
-		// this_type& operator=(this_type&& x);
 
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			fixed_list<TestObject, 16> list3TO33(3, TestObject(33));
-			fixed_list<TestObject, 16> toListA(eastl::move(list3TO33));
-			EATEST_VERIFY((toListA.size() == 3) && (toListA.front().mX == 33) /* && (list3TO33.size() == 0) fixed_list usually can't honor the move request. */);
+    {
+#if EASTL_MOVE_SEMANTICS_ENABLED && EASTL_VARIADIC_TEMPLATES_ENABLED
+        // template <class... Args>
+        // void emplace_front(Args&&... args);
 
-			// The following is not as strong a test of this ctor as it could be. A stronger test would be to use IntanceAllocator with different instances.
-			fixed_list<TestObject, 16, true, MallocAllocator> list4TO44(4, TestObject(44));
-			fixed_list<TestObject, 16, true, MallocAllocator> toListB(eastl::move(list4TO44), MallocAllocator());
-			EATEST_VERIFY((toListB.size() == 4) && (toListB.front().mX == 44) /* && (list4TO44.size() == 0) fixed_list usually can't honor the move request. */);
+        // template <class... Args>
+        // void emplace_back(Args&&... args);
 
-			fixed_list<TestObject, 16, true, MallocAllocator> list5TO55(5, TestObject(55));
-			toListB = eastl::move(list5TO55);
-			EATEST_VERIFY((toListB.size() == 5) && (toListB.front().mX == 55) /* && (list5TO55.size() == 0) fixed_list usually can't honor the move request. */);
-		#endif
-	}
+        // template <class... Args>
+        // iterator emplace(const_iterator position, Args&&... args);
+#else
+#if EASTL_MOVE_SEMANTICS_ENABLED
+        // void emplace_front(value_type&& value);
+        // void emplace_back(value_type&& value);
+        // iterator emplace(const_iterator position, value_type&& value);
+#endif
+        // void emplace_front(const value_type& value);
+        // void emplace_back(const value_type& value);
+        // iterator emplace(const_iterator position, const value_type& value);
+#endif
 
+#if EASTL_MOVE_SEMANTICS_ENABLED && EASTL_VARIADIC_TEMPLATES_ENABLED
+        TestObject::Reset();
 
-	{
-		#if EASTL_MOVE_SEMANTICS_ENABLED && EASTL_VARIADIC_TEMPLATES_ENABLED
-			// template <class... Args>
-			// void emplace_front(Args&&... args);
+        fixed_list<TestObject, 16> toListA;
 
-			// template <class... Args>
-			// void emplace_back(Args&&... args);
+        toListA.emplace_front(1, 2, 3); // This uses the TestObject(int x0, int x1, int x2, bool bThrowOnCopy) constructor.
+        EATEST_VERIFY((toListA.size() == 1) && (toListA.front().mX == (1 + 2 + 3)) && (TestObject::sTOCtorCount == 1));
 
-			// template <class... Args>
-			// iterator emplace(const_iterator position, Args&&... args);
-		#else
-			#if EASTL_MOVE_SEMANTICS_ENABLED
-				// void emplace_front(value_type&& value);
-				// void emplace_back(value_type&& value);
-				// iterator emplace(const_iterator position, value_type&& value);
-			#endif
-			// void emplace_front(const value_type& value);
-			// void emplace_back(const value_type& value);
-			// iterator emplace(const_iterator position, const value_type& value);
-		#endif
+        toListA.emplace_back(2, 3, 4);
+        EATEST_VERIFY((toListA.size() == 2) && (toListA.back().mX == (2 + 3 + 4)) && (TestObject::sTOCtorCount == 2));
 
-		#if EASTL_MOVE_SEMANTICS_ENABLED && EASTL_VARIADIC_TEMPLATES_ENABLED
-			TestObject::Reset();
+        toListA.emplace(toListA.begin(), 3, 4, 5);
+        EATEST_VERIFY((toListA.size() == 3) && (toListA.front().mX == (3 + 4 + 5)) && (TestObject::sTOCtorCount == 3));
+#else
+#if EASTL_MOVE_SEMANTICS_ENABLED
+        TestObject::Reset();
 
-			fixed_list<TestObject, 16> toListA;
+        // We have a potential problem here in that the compiler is not required to use move construction below.
+        // It is allowed to use standard copy construction if it wants. We could force it with eastl::move() usage.
+        fixed_list<TestObject, 16> toListA;
 
-			toListA.emplace_front(1, 2, 3); // This uses the TestObject(int x0, int x1, int x2, bool bThrowOnCopy) constructor.
-			EATEST_VERIFY((toListA.size() == 1) && (toListA.front().mX == (1+2+3)) && (TestObject::sTOCtorCount == 1));
+        toListA.emplace_front(TestObject(1, 2, 3));
+        EATEST_VERIFY((toListA.size() == 1) && (toListA.front().mX == (1 + 2 + 3)) && (TestObject::sTOMoveCtorCount == 1));
 
-			toListA.emplace_back(2, 3, 4);
-			EATEST_VERIFY((toListA.size() == 2) && (toListA.back().mX == (2+3+4)) && (TestObject::sTOCtorCount == 2));
+        toListA.emplace_back(TestObject(2, 3, 4));
+        EATEST_VERIFY((toListA.size() == 2) && (toListA.back().mX == (2 + 3 + 4)) && (TestObject::sTOMoveCtorCount == 2));
 
-			toListA.emplace(toListA.begin(), 3, 4, 5);
-			EATEST_VERIFY((toListA.size() == 3) && (toListA.front().mX == (3+4+5)) && (TestObject::sTOCtorCount == 3));
-		#else
-			#if EASTL_MOVE_SEMANTICS_ENABLED
-				TestObject::Reset();
+        toListA.emplace(toListA.begin(), TestObject(3, 4, 5));
+        EATEST_VERIFY((toListA.size() == 3) && (toListA.front().mX == (3 + 4 + 5)) && (TestObject::sTOMoveCtorCount == 3));
+#endif
 
-				// We have a potential problem here in that the compiler is not required to use move construction below.
-				// It is allowed to use standard copy construction if it wants. We could force it with eastl::move() usage.
-				fixed_list<TestObject, 16> toListA;
+        TestObject::Reset();
 
-				toListA.emplace_front(TestObject(1, 2, 3));
-				EATEST_VERIFY((toListA.size() == 1) && (toListA.front().mX == (1+2+3)) && (TestObject::sTOMoveCtorCount == 1));
+        list<TestObject> toListB;
+        TestObject to123(1, 2, 3);
+        TestObject to234(2, 3, 4);
+        TestObject to345(3, 4, 5);
 
-				toListA.emplace_back(TestObject(2, 3, 4));
-				EATEST_VERIFY((toListA.size() == 2) && (toListA.back().mX == (2+3+4)) && (TestObject::sTOMoveCtorCount == 2));
+        toListB.emplace_front(to123);   // This should use the const value_type& version and not the value_type&& version of emplace_front.
+        EATEST_VERIFY((toListB.size() == 1) && (toListB.front().mX == (1 + 2 + 3)) && (TestObject::sTOCopyCtorCount == 1));
 
-				toListA.emplace(toListA.begin(), TestObject(3, 4, 5));
-				EATEST_VERIFY((toListA.size() == 3) && (toListA.front().mX == (3+4+5)) && (TestObject::sTOMoveCtorCount == 3));
-			#endif
-			
-			TestObject::Reset();
+        toListB.emplace_back(to234);
+        EATEST_VERIFY((toListB.size() == 2) && (toListB.back().mX == (2 + 3 + 4)) && (TestObject::sTOCopyCtorCount == 2));
 
-			list<TestObject> toListB;
-			TestObject to123(1, 2, 3);
-			TestObject to234(2, 3, 4);
-			TestObject to345(3, 4, 5);
+        toListB.emplace(toListB.begin(), to345);
+        EATEST_VERIFY((toListB.size() == 3) && (toListB.front().mX == (3 + 4 + 5)) && (TestObject::sTOCopyCtorCount == 3));
 
-			toListB.emplace_front(to123);   // This should use the const value_type& version and not the value_type&& version of emplace_front.
-			EATEST_VERIFY((toListB.size() == 1) && (toListB.front().mX == (1+2+3)) && (TestObject::sTOCopyCtorCount == 1));
+        EATEST_VERIFY(to123.mX == (1 + 2 + 3)); // Verify that the object was copied and not moved. If it was moved then mX would be 0 and not 1+2+3.
+        EATEST_VERIFY(to234.mX == (2 + 3 + 4));
+        EATEST_VERIFY(to345.mX == (3 + 4 + 5));
+#endif
 
-			toListB.emplace_back(to234);
-			EATEST_VERIFY((toListB.size() == 2) && (toListB.back().mX == (2+3+4)) && (TestObject::sTOCopyCtorCount == 2));
 
-			toListB.emplace(toListB.begin(), to345);
-			EATEST_VERIFY((toListB.size() == 3) && (toListB.front().mX == (3+4+5)) && (TestObject::sTOCopyCtorCount == 3));
+#if EASTL_MOVE_SEMANTICS_ENABLED
+        // This test is similar to the emplace EASTL_MOVE_SEMANTICS_ENABLED pathway above.
+        TestObject::Reset();
 
-			EATEST_VERIFY(to123.mX == (1+2+3));  // Verify that the object was copied and not moved. If it was moved then mX would be 0 and not 1+2+3.
-			EATEST_VERIFY(to234.mX == (2+3+4));
-			EATEST_VERIFY(to345.mX == (3+4+5));
-		#endif
+        // void push_front(T&& x);
+        // void push_back(T&& x);
+        // iterator insert(const_iterator position, T&& x);
 
+        fixed_list<TestObject, 16> toListC;
 
-		#if EASTL_MOVE_SEMANTICS_ENABLED
-			// This test is similar to the emplace EASTL_MOVE_SEMANTICS_ENABLED pathway above. 
-			TestObject::Reset();
+        toListC.push_front(TestObject(1, 2, 3));
+        EATEST_VERIFY((toListC.size() == 1) && (toListC.front().mX == (1 + 2 + 3)) && (TestObject::sTOMoveCtorCount == 1));
 
-			// void push_front(T&& x);
-			// void push_back(T&& x);
-			// iterator insert(const_iterator position, T&& x);
+        toListC.push_back(TestObject(2, 3, 4));
+        EATEST_VERIFY((toListC.size() == 2) && (toListC.back().mX == (2 + 3 + 4)) && (TestObject::sTOMoveCtorCount == 2));
 
-			fixed_list<TestObject, 16> toListC;
+        toListC.insert(toListC.begin(), TestObject(3, 4, 5));
+        EATEST_VERIFY((toListC.size() == 3) && (toListC.front().mX == (3 + 4 + 5)) && (TestObject::sTOMoveCtorCount == 3));
+#endif
+    }
 
-			toListC.push_front(TestObject(1, 2, 3));
-			EATEST_VERIFY((toListC.size() == 1) && (toListC.front().mX == (1+2+3)) && (TestObject::sTOMoveCtorCount == 1));
 
-			toListC.push_back(TestObject(2, 3, 4));
-			EATEST_VERIFY((toListC.size() == 2) && (toListC.back().mX == (2+3+4)) && (TestObject::sTOMoveCtorCount == 2));
+    {
+        // list(std::initializer_list<value_type> ilist, const allocator_type& allocator = EASTL_LIST_DEFAULT_ALLOCATOR);
+        // this_type& operator=(std::initializer_list<value_type> ilist);
+        // void assign(std::initializer_list<value_type> ilist);
+        // iterator insert(iterator position, std::initializer_list<value_type> ilist);
+#if !defined(EA_COMPILER_NO_INITIALIZER_LISTS)
+        list<int> intList = { 0, 1, 2 };
+        EATEST_VERIFY(VerifySequence(intList.begin(), intList.end(), int(), "list std::initializer_list", 0, 1, 2, -1));
 
-			toListC.insert(toListC.begin(), TestObject(3, 4, 5));
-			EATEST_VERIFY((toListC.size() == 3) && (toListC.front().mX == (3+4+5)) && (TestObject::sTOMoveCtorCount == 3));
-		#endif
-	}
+        intList = { 13, 14, 15 };
+        EATEST_VERIFY(VerifySequence(intList.begin(), intList.end(), int(), "list std::initializer_list", 13, 14, 15, -1));
 
+        intList.assign({ 16, 17, 18 });
+        EATEST_VERIFY(VerifySequence(intList.begin(), intList.end(), int(), "list std::initializer_list", 16, 17, 18, -1));
 
-	{
-		// list(std::initializer_list<value_type> ilist, const allocator_type& allocator = EASTL_LIST_DEFAULT_ALLOCATOR);
-		// this_type& operator=(std::initializer_list<value_type> ilist);
-		// void assign(std::initializer_list<value_type> ilist);
-		// iterator insert(iterator position, std::initializer_list<value_type> ilist);
-		#if !defined(EA_COMPILER_NO_INITIALIZER_LISTS)
-			list<int> intList = { 0, 1, 2 };
-			EATEST_VERIFY(VerifySequence(intList.begin(), intList.end(), int(), "list std::initializer_list", 0, 1, 2, -1));
+        intList.insert(intList.begin(), { 14, 15 });
+        EATEST_VERIFY(VerifySequence(intList.begin(), intList.end(), int(), "list std::initializer_list", 14, 15, 16, 17, 18, -1));
+#endif
+    }
 
-			intList = { 13, 14, 15 };
-			EATEST_VERIFY(VerifySequence(intList.begin(), intList.end(), int(), "list std::initializer_list", 13, 14, 15, -1));
 
-			intList.assign({ 16, 17, 18 });
-			EATEST_VERIFY(VerifySequence(intList.begin(), intList.end(), int(), "list std::initializer_list", 16, 17, 18, -1));
+    {
+        // Regression of user test
+        struct Dummy {
+            typedef eastl::fixed_list<FixedListTest::Item, 10, false> TCollection;
 
-			intList.insert(intList.begin(), { 14, 15 });
-			EATEST_VERIFY(VerifySequence(intList.begin(), intList.end(), int(), "list std::initializer_list", 14, 15, 16, 17, 18, -1));
-		#endif
-	}
+            TCollection mCollection1;
+            TCollection mCollection2;
+        };
 
+        Dummy d;
+        VERIFY(d.mCollection1.size() == d.mCollection2.size());
+    }
 
-	{   // Regression of user test
-		struct Dummy
-		{
-		   typedef eastl::fixed_list<FixedListTest::Item, 10, false> TCollection;
 
-		   TCollection mCollection1;
-		   TCollection mCollection2;
-		};
+    {
+        // Test construction of a container with an overflow allocator constructor argument.
+        MallocAllocator overflowAllocator;
+        void *p = overflowAllocator.allocate(1);
+        fixed_list<int, 64, true, MallocAllocator> c(overflowAllocator);
+        c.resize(65);
+        VERIFY(c.get_overflow_allocator().mAllocCount == 2); // 1 for above, and 1 for overflowing from 64 to 65.
+        overflowAllocator.deallocate(p, 1);
+    }
 
-		Dummy d;
-		VERIFY(d.mCollection1.size() == d.mCollection2.size());
-	}
 
+    // We can't do this, due to how Reset is used above:
+    //   EATEST_VERIFY(TestObject::IsClear());
+    EATEST_VERIFY(TestObject::sMagicErrorCount == 0);
+    TestObject::Reset();
 
-	{
-		// Test construction of a container with an overflow allocator constructor argument.
-		MallocAllocator overflowAllocator;
-		void* p = overflowAllocator.allocate(1);
-		fixed_list<int, 64, true, MallocAllocator> c(overflowAllocator);
-		c.resize(65);
-		VERIFY(c.get_overflow_allocator().mAllocCount == 2); // 1 for above, and 1 for overflowing from 64 to 65.
-		overflowAllocator.deallocate(p, 1);
-	}
 
-
-	// We can't do this, due to how Reset is used above:
-	//   EATEST_VERIFY(TestObject::IsClear());
-	EATEST_VERIFY(TestObject::sMagicErrorCount == 0);
-	TestObject::Reset();
-
-
-	return nErrorCount;
+    return nErrorCount;
 }
 EA_RESTORE_VC_WARNING()
 

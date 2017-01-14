@@ -11,11 +11,11 @@
 
 int TestSparseMatrix()
 {
-	EASTLTest_Printf("TestSparseMatrix\n");
+    EASTLTest_Printf("TestSparseMatrix\n");
 
-	int nErrorCount = 0;
+    int nErrorCount = 0;
 
-	return nErrorCount;
+    return nErrorCount;
 }
 
 

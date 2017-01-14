@@ -12,17 +12,17 @@
 namespace eastl
 {
 
-template <typename... T>
-class tuple;
+    template <typename... T>
+    class tuple;
 
-template <typename Tuple>
-class tuple_size;
+    template <typename Tuple>
+    class tuple_size;
 
-template <size_t I, typename Tuple>
-class tuple_element;
+    template <size_t I, typename Tuple>
+    class tuple_element;
 
-template <size_t I, typename Tuple>
-using tuple_element_t = typename tuple_element<I, Tuple>::type;
+    template <size_t I, typename Tuple>
+    using tuple_element_t = typename tuple_element<I, Tuple>::type;
 }
 
 #endif  // EASTL_VARIADIC_TEMPLATES_ENABLED

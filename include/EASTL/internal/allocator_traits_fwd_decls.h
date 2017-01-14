@@ -9,7 +9,7 @@
 
 #include <EABase/eabase.h>
 #if defined(EA_PRAGMA_ONCE_SUPPORTED)
-	#pragma once
+#pragma once
 #endif
 
 #include <EASTL/internal/config.h>
@@ -17,8 +17,8 @@
 
 namespace eastl
 {
-	template <class Alloc>
-	struct allocator_traits;
+    template <class Alloc>
+    struct allocator_traits;
 
 } // namespace eastl
 

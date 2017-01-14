@@ -16,93 +16,94 @@ using namespace eastl;
 
 namespace
 {
-	struct SetWidget : public intrusive_hash_node
-	{
-		SetWidget(int x = 0)
-			: mX(x) { }
-		int mX;
-	};
+    struct SetWidget : public intrusive_hash_node {
+        SetWidget(int x = 0)
+            : mX(x) { }
+        int mX;
+    };
 
-	inline bool operator==(const SetWidget& a, const SetWidget& b)
-		{ return a.mX == b.mX; }
+    inline bool operator==(const SetWidget &a, const SetWidget &b)
+    {
+        return a.mX == b.mX;
+    }
 
-	struct SWHash
-	{
-		size_t operator()(const SetWidget& sw) const
-		{
-			return (size_t)sw.mX;
-		}
-	};
+    struct SWHash {
+        size_t operator()(const SetWidget &sw) const
+        {
+            return (size_t)sw.mX;
+        }
+    };
 
-	struct SetWidgetComparable // Exists for the sole purpose of testing the find_as function.
-	{
-		SetWidgetComparable(int x = 0)
-			: mX(x) { }
-		int mX;
-	};
+    struct SetWidgetComparable { // Exists for the sole purpose of testing the find_as function.
+        SetWidgetComparable(int x = 0)
+            : mX(x) { }
+        int mX;
+    };
 
-	struct SWCHash
-	{
-		size_t operator()(const SetWidgetComparable& swc) const
-		{
-			return (size_t)swc.mX;
-		}
-	};
+    struct SWCHash {
+        size_t operator()(const SetWidgetComparable &swc) const
+        {
+            return (size_t)swc.mX;
+        }
+    };
 
-	bool operator==(const SetWidget& a, const SetWidgetComparable& b)
-		{ return a.mX == b.mX; }
-
-
-
-	struct MapWidget : public intrusive_hash_node_key<int>
-	{
-		MapWidget(int x = 0)
-			: mX(x) { }
-		int mX;
-	};
-
-	inline bool operator==(const MapWidget& a, const MapWidget& b)
-		{ return a.mX == b.mX; }
-
-	//struct MapWidgetComparable // Exists for the sole purpose of testing the find_as function.
-	//{
-	//    MapWidgetComparable(int x = 0)
-	//        : mX(x) { }
-	//    int mX;
-	//};
-	//
-	//bool operator==(const SetWidget& a, const MapWidgetComparable& b)
-	//    { return a.mX == b.mX; }
+    bool operator==(const SetWidget &a, const SetWidgetComparable &b)
+    {
+        return a.mX == b.mX;
+    }
 
 
 
+    struct MapWidget : public intrusive_hash_node_key<int> {
+        MapWidget(int x = 0)
+            : mX(x) { }
+        int mX;
+    };
 
-	// IHWidget
-	//
-	// Implements the intrusive node data directly instead of inheriting from intrusive_hash_node.
-	//
-	struct IHWidget
-	{
-		IHWidget(int x = 0)
-			: mX(x) { }
+    inline bool operator==(const MapWidget &a, const MapWidget &b)
+    {
+        return a.mX == b.mX;
+    }
 
-		int         mX;
-		IHWidget*   mpNext;
-		typedef int key_type;
-		int         mKey;
+    //struct MapWidgetComparable // Exists for the sole purpose of testing the find_as function.
+    //{
+    //    MapWidgetComparable(int x = 0)
+    //        : mX(x) { }
+    //    int mX;
+    //};
+    //
+    //bool operator==(const SetWidget& a, const MapWidgetComparable& b)
+    //    { return a.mX == b.mX; }
 
-	};
 
-	inline bool operator==(const IHWidget& a, const IHWidget& b)
-		{ return a.mX == b.mX; }
 
-	struct IHWHash
-	{
-		size_t operator()(const IHWidget& ihw) const
-		{
-			return (size_t)ihw.mX;
-		}
-	};
+
+    // IHWidget
+    //
+    // Implements the intrusive node data directly instead of inheriting from intrusive_hash_node.
+    //
+    struct IHWidget {
+        IHWidget(int x = 0)
+            : mX(x) { }
+
+        int         mX;
+        IHWidget   *mpNext;
+        typedef int key_type;
+        int         mKey;
+
+    };
+
+    inline bool operator==(const IHWidget &a, const IHWidget &b)
+    {
+        return a.mX == b.mX;
+    }
+
+    struct IHWHash {
+        size_t operator()(const IHWidget &ihw) const
+        {
+            return (size_t)ihw.mX;
+        }
+    };
 
 } // namespace
 
@@ -136,624 +137,612 @@ template class eastl::intrusive_hash_multimap<int, IHWidget, 37, IHWHash>;
 
 int TestIntrusiveHash()
 {
-	EASTLTest_Printf("TestIntrusiveHash\n");
+    EASTLTest_Printf("TestIntrusiveHash\n");
 
-	int nErrorCount = 0;
+    int nErrorCount = 0;
 
-	{
-		SetWidget sw1, sw2;
-		VERIFY(sw1 == sw2);
+    {
+        SetWidget sw1, sw2;
+        VERIFY(sw1 == sw2);
 
-		MapWidget mw1, mw2;
-		VERIFY(mw1 == mw2);
+        MapWidget mw1, mw2;
+        VERIFY(mw1 == mw2);
 
-		IHWidget iw1, iw2;
-		VERIFY(iw1 == iw2);
+        IHWidget iw1, iw2;
+        VERIFY(iw1 == iw2);
 
-		IHWHash ih1;
-		VERIFY(ih1.operator()(iw1) == ih1.operator()(iw2));
-	}
+        IHWHash ih1;
+        VERIFY(ih1.operator()(iw1) == ih1.operator()(iw2));
+    }
 
-	{
-		// Test intrusive_hash_set
+    {
+        // Test intrusive_hash_set
 
-		const size_t kBucketCount = 37;
-		typedef intrusive_hash_set<SetWidget, kBucketCount, SWHash> IHM_SW;
-
-		const size_t kArraySize = 100;
-		SetWidget swArray[kArraySize];
-
-		int nExpectedKeySum = 0; // We use this as a checksum in order to do validity checks below.
-
-		for(size_t i = 0; i < kArraySize; i++)
-		{
-			swArray[i].mX    = (int)i;
-			nExpectedKeySum += (int)i;
-		}
-
-
-		// const key_equal& key_eq() const;
-		// key_equal&       key_eq();
-		IHM_SW       ih;
-		const IHM_SW ihc;
-
-		const IHM_SW::key_equal& ke = ihc.key_eq();
-		ih.key_eq() = ke;
-
-
-		// intrusive_hashtable(const Hash&, const Equal&);
-		// void swap(this_type& x);
-		// size_type size() const;
-		// bool empty() const;
-		// size_type bucket_count() const;
-		// size_type bucket_size(size_type n) const;
-		// float load_factor() const;
-		// void clear();
-		// bool validate() const;
-
-		IHM_SW ihmSW1;
-		IHM_SW ihmSW2;
-
-		VERIFY(ihmSW1.size() == 0);
-		VERIFY(ihmSW1.empty());
-		VERIFY(ihmSW1.validate());
-		VERIFY(ihmSW2.validate());
+        const size_t kBucketCount = 37;
+        typedef intrusive_hash_set<SetWidget, kBucketCount, SWHash> IHM_SW;
 
-		ihmSW1.swap(ihmSW2);
+        const size_t kArraySize = 100;
+        SetWidget swArray[kArraySize];
+
+        int nExpectedKeySum = 0; // We use this as a checksum in order to do validity checks below.
+
+        for(size_t i = 0; i < kArraySize; i++) {
+            swArray[i].mX    = (int)i;
+            nExpectedKeySum += (int)i;
+        }
+
 
-		VERIFY(ihmSW1.validate());
-		VERIFY(ihmSW2.validate());
-		VERIFY(ihmSW2.bucket_count() == kBucketCount);
-		VERIFY(ihmSW2.bucket_size(0) == 0);
-		VERIFY(ihmSW2.bucket_size(kBucketCount - 1) == 0);
-		VERIFY(ihmSW1.load_factor() == 0.f);
-		VERIFY(ihmSW2.load_factor() == 0.f);
+        // const key_equal& key_eq() const;
+        // key_equal&       key_eq();
+        IHM_SW       ih;
+        const IHM_SW ihc;
 
-		ihmSW1.clear();
-		VERIFY(ihmSW1.validate());
-		VERIFY(ihmSW1.begin() == ihmSW1.end());
+        const IHM_SW::key_equal &ke = ihc.key_eq();
+        ih.key_eq() = ke;
 
 
-		// void insert(InputIterator first, InputIterator last);
-		// insert_return_type insert(value_type& value);
-		// void swap(this_type& x);
-		// void clear();
+        // intrusive_hashtable(const Hash&, const Equal&);
+        // void swap(this_type& x);
+        // size_type size() const;
+        // bool empty() const;
+        // size_type bucket_count() const;
+        // size_type bucket_size(size_type n) const;
+        // float load_factor() const;
+        // void clear();
+        // bool validate() const;
 
-		ihmSW1.clear();
-		ihmSW1.insert(swArray, swArray + (kArraySize - 10));
-		for(int i = 0; i < 10; i++) // insert the remaining elements via the other insert function.
-		{
-			pair<IHM_SW::iterator, bool> result = ihmSW1.insert(swArray[(kArraySize - 10) + i]);
-			VERIFY(result.second == true);
-		}
+        IHM_SW ihmSW1;
+        IHM_SW ihmSW2;
 
-		VERIFY(ihmSW1.size() == kArraySize);
-		VERIFY(ihmSW1.validate());
+        VERIFY(ihmSW1.size() == 0);
+        VERIFY(ihmSW1.empty());
+        VERIFY(ihmSW1.validate());
+        VERIFY(ihmSW2.validate());
 
-		for(size_t i = 0; i < kArraySize; i++)
-		{
-			// Try to re-insert the elements. All insertions should fail.
-			pair<IHM_SW::iterator, bool> result = ihmSW1.insert(swArray[i]);
-			VERIFY(result.second == false);
-		}
+        ihmSW1.swap(ihmSW2);
 
-		VERIFY(ihmSW1.size() == kArraySize);
-		VERIFY(!ihmSW1.empty());
-		VERIFY(ihmSW1.validate());
+        VERIFY(ihmSW1.validate());
+        VERIFY(ihmSW2.validate());
+        VERIFY(ihmSW2.bucket_count() == kBucketCount);
+        VERIFY(ihmSW2.bucket_size(0) == 0);
+        VERIFY(ihmSW2.bucket_size(kBucketCount - 1) == 0);
+        VERIFY(ihmSW1.load_factor() == 0.f);
+        VERIFY(ihmSW2.load_factor() == 0.f);
 
-		ihmSW2.clear();
-		ihmSW1.swap(ihmSW2);
+        ihmSW1.clear();
+        VERIFY(ihmSW1.validate());
+        VERIFY(ihmSW1.begin() == ihmSW1.end());
 
 
-		// size_type size() const;
-		// bool empty() const;
-		// size_type count(const key_type& k) const;
-		// size_type bucket_size(size_type n) const;
-		// float load_factor() const;
-		// size_type bucket(const key_type& k) const
+        // void insert(InputIterator first, InputIterator last);
+        // insert_return_type insert(value_type& value);
+        // void swap(this_type& x);
+        // void clear();
 
-		VERIFY(ihmSW1.validate());
-		VERIFY(ihmSW2.validate());
-		VERIFY(ihmSW1.size() == 0);
-		VERIFY(ihmSW1.empty());
-		VERIFY(ihmSW2.size() == kArraySize);
-		VERIFY(!ihmSW2.empty());
-		VERIFY(ihmSW1.load_factor() == 0.f);
-		VERIFY(ihmSW2.load_factor() > 2.f);
-		VERIFY(ihmSW1.count(0) == 0);
-		VERIFY(ihmSW1.count(999999) == 0);
-		VERIFY(ihmSW2.count(0) == 1);
-		VERIFY(ihmSW2.count(999999) == 0);
-		VERIFY(ihmSW2.bucket_size(0) == 3);     // We just happen to know this should be so based on the distribution.
-		VERIFY(ihmSW2.bucket(13)    == (13    % kBucketCount)); // We know this is so because our hash function simply returns n.
-		VERIFY(ihmSW2.bucket(10000) == (10000 % kBucketCount)); // We know this is so because our hash function simply returns n.
-   
+        ihmSW1.clear();
+        ihmSW1.insert(swArray, swArray + (kArraySize - 10));
 
-		// iterator begin();
-		// const_iterator begin() const;
+        for(int i = 0; i < 10; i++) { // insert the remaining elements via the other insert function.
+            pair<IHM_SW::iterator, bool> result = ihmSW1.insert(swArray[(kArraySize - 10) + i]);
+            VERIFY(result.second == true);
+        }
 
-		ihmSW1.swap(ihmSW2);
-		int nSum = 0; 
+        VERIFY(ihmSW1.size() == kArraySize);
+        VERIFY(ihmSW1.validate());
 
-		for(IHM_SW::iterator it = ihmSW1.begin(); it != ihmSW1.end(); ++it)
-		{
-			const SetWidget& sw = *it; // Recall that set iterators are const_iterators.
+        for(size_t i = 0; i < kArraySize; i++) {
+            // Try to re-insert the elements. All insertions should fail.
+            pair<IHM_SW::iterator, bool> result = ihmSW1.insert(swArray[i]);
+            VERIFY(result.second == false);
+        }
 
-			nSum += sw.mX;
+        VERIFY(ihmSW1.size() == kArraySize);
+        VERIFY(!ihmSW1.empty());
+        VERIFY(ihmSW1.validate());
 
-			const int iresult = ihmSW1.validate_iterator(it);
-			VERIFY(iresult == (isf_valid | isf_current | isf_can_dereference));
+        ihmSW2.clear();
+        ihmSW1.swap(ihmSW2);
 
-			IHM_SW::iterator itf = ihmSW1.find(sw.mX);
-			VERIFY(itf == it);
-		}
 
-		VERIFY(nSum == nExpectedKeySum);
+        // size_type size() const;
+        // bool empty() const;
+        // size_type count(const key_type& k) const;
+        // size_type bucket_size(size_type n) const;
+        // float load_factor() const;
+        // size_type bucket(const key_type& k) const
 
+        VERIFY(ihmSW1.validate());
+        VERIFY(ihmSW2.validate());
+        VERIFY(ihmSW1.size() == 0);
+        VERIFY(ihmSW1.empty());
+        VERIFY(ihmSW2.size() == kArraySize);
+        VERIFY(!ihmSW2.empty());
+        VERIFY(ihmSW1.load_factor() == 0.f);
+        VERIFY(ihmSW2.load_factor() > 2.f);
+        VERIFY(ihmSW1.count(0) == 0);
+        VERIFY(ihmSW1.count(999999) == 0);
+        VERIFY(ihmSW2.count(0) == 1);
+        VERIFY(ihmSW2.count(999999) == 0);
+        VERIFY(ihmSW2.bucket_size(0) == 3);     // We just happen to know this should be so based on the distribution.
+        VERIFY(ihmSW2.bucket(13)    == (13    % kBucketCount)); // We know this is so because our hash function simply returns n.
+        VERIFY(ihmSW2.bucket(10000) == (10000 % kBucketCount)); // We know this is so because our hash function simply returns n.
 
-		// iterator end();
-		// const_iterator end() const;
 
-		const IHM_SW& ihmSW1Const = ihmSW1;
+        // iterator begin();
+        // const_iterator begin() const;
 
-		for(IHM_SW::const_iterator itc = ihmSW1Const.begin(); itc != ihmSW1Const.end(); ++itc)
-		{
-			const SetWidget& sw = *itc;
+        ihmSW1.swap(ihmSW2);
+        int nSum = 0;
 
-			IHM_SW::const_iterator itf = ihmSW1.find(sw.mX);
-			VERIFY(itf == itc);
-		}
+        for(IHM_SW::iterator it = ihmSW1.begin(); it != ihmSW1.end(); ++it) {
+            const SetWidget &sw = *it; // Recall that set iterators are const_iterators.
 
+            nSum += sw.mX;
 
-		// local_iterator begin(size_type n)
-		// local_iterator end(size_type)
+            const int iresult = ihmSW1.validate_iterator(it);
+            VERIFY(iresult == (isf_valid | isf_current | isf_can_dereference));
 
-		for(IHM_SW::local_iterator itl = ihmSW1.begin(5); itl != ihmSW1.end(5); ++itl)
-		{
-			const SetWidget& sw = *itl; // Recall that set iterators are const_iterators.
+            IHM_SW::iterator itf = ihmSW1.find(sw.mX);
+            VERIFY(itf == it);
+        }
 
-			VERIFY((sw.mX % kBucketCount) == 5);
-		}
+        VERIFY(nSum == nExpectedKeySum);
 
 
-		// const_local_iterator begin(size_type n) const
-		// const_local_iterator end(size_type) const
+        // iterator end();
+        // const_iterator end() const;
 
-		for(IHM_SW::const_local_iterator itlc = ihmSW1Const.begin(5); itlc != ihmSW1Const.end(5); ++itlc)
-		{
-			const SetWidget& sw = *itlc;
+        const IHM_SW &ihmSW1Const = ihmSW1;
 
-			VERIFY((sw.mX % kBucketCount) == 5);
-		}
+        for(IHM_SW::const_iterator itc = ihmSW1Const.begin(); itc != ihmSW1Const.end(); ++itc) {
+            const SetWidget &sw = *itc;
 
+            IHM_SW::const_iterator itf = ihmSW1.find(sw.mX);
+            VERIFY(itf == itc);
+        }
 
-		// iterator       find(const key_type& k);
-		// const_iterator find(const key_type& k) const;
 
-		IHM_SW::iterator itf = ihmSW1.find(SetWidget(99999));
-		VERIFY(itf == ihmSW1.end());
+        // local_iterator begin(size_type n)
+        // local_iterator end(size_type)
 
-		IHM_SW::const_iterator itfc = ihmSW1Const.find(SetWidget(99999));
-		VERIFY(itfc == ihmSW1Const.end());
+        for(IHM_SW::local_iterator itl = ihmSW1.begin(5); itl != ihmSW1.end(5); ++itl) {
+            const SetWidget &sw = *itl; // Recall that set iterators are const_iterators.
 
+            VERIFY((sw.mX % kBucketCount) == 5);
+        }
 
-		// iterator       find_as(const U& u);
-		// const_iterator find_as(const U& u) const;
 
-		//itf = ihmSW1.find_as(SetWidget(7)); // Can't work unless there was a default eastl::hash function for SetWidget.
-		//VERIFY(itf->mX == 7);
+        // const_local_iterator begin(size_type n) const
+        // const_local_iterator end(size_type) const
 
-		//itfc = ihmSW1Const.find_as(SetWidget(7));
-		//VERIFY(itfc->mX == 7);
+        for(IHM_SW::const_local_iterator itlc = ihmSW1Const.begin(5); itlc != ihmSW1Const.end(5); ++itlc) {
+            const SetWidget &sw = *itlc;
 
+            VERIFY((sw.mX % kBucketCount) == 5);
+        }
 
-		// iterator       find_as(const U& u, UHash uhash, BinaryPredicate predicate);
-		// const_iterator find_as(const U& u, UHash uhash, BinaryPredicate predicate) const;
 
-		itf = ihmSW1.find_as(SetWidgetComparable(7), SWCHash(), eastl::equal_to_2<SetWidget, SetWidgetComparable>());
-		VERIFY(itf->mX == 7);
+        // iterator       find(const key_type& k);
+        // const_iterator find(const key_type& k) const;
 
-		itfc = ihmSW1Const.find_as(SetWidgetComparable(7), SWCHash(), eastl::equal_to_2<SetWidget, SetWidgetComparable>());
-		VERIFY(itfc->mX == 7);
+        IHM_SW::iterator itf = ihmSW1.find(SetWidget(99999));
+        VERIFY(itf == ihmSW1.end());
 
+        IHM_SW::const_iterator itfc = ihmSW1Const.find(SetWidget(99999));
+        VERIFY(itfc == ihmSW1Const.end());
 
-		// iterator  erase(iterator);
-		// iterator  erase(iterator, iterator);
-		// size_type erase(const key_type&);
 
-		eastl_size_t n = ihmSW1.erase(SetWidget(99999));
-		VERIFY(n == 0);
+        // iterator       find_as(const U& u);
+        // const_iterator find_as(const U& u) const;
 
-		n = ihmSW1.erase(SetWidget(17));
-		VERIFY(n == 1);
+        //itf = ihmSW1.find_as(SetWidget(7)); // Can't work unless there was a default eastl::hash function for SetWidget.
+        //VERIFY(itf->mX == 7);
 
-		itf = ihmSW1.find(SetWidget(18));
-		VERIFY(itf != ihmSW1.end());
-		VERIFY(ihmSW1.validate_iterator(itf) == (isf_valid | isf_current | isf_can_dereference));
+        //itfc = ihmSW1Const.find_as(SetWidget(7));
+        //VERIFY(itfc->mX == 7);
 
-		itf = ihmSW1.erase(itf);
-		VERIFY(itf != ihmSW1.end());
-		VERIFY(ihmSW1.validate_iterator(itf) == (isf_valid | isf_current | isf_can_dereference));
 
-		itf = ihmSW1.find(SetWidget(18));
-		VERIFY(itf == ihmSW1.end());
+        // iterator       find_as(const U& u, UHash uhash, BinaryPredicate predicate);
+        // const_iterator find_as(const U& u, UHash uhash, BinaryPredicate predicate) const;
 
-		itf = ihmSW1.find(SetWidget(19));
-		VERIFY(itf != ihmSW1.end());
+        itf = ihmSW1.find_as(SetWidgetComparable(7), SWCHash(), eastl::equal_to_2<SetWidget, SetWidgetComparable>());
+        VERIFY(itf->mX == 7);
 
-		IHM_SW::iterator itf2(itf);
-		eastl::advance(itf2, 7);
-		VERIFY(itf2 != ihmSW1.end());
-		VERIFY(ihmSW1.validate_iterator(itf2) == (isf_valid | isf_current | isf_can_dereference));
+        itfc = ihmSW1Const.find_as(SetWidgetComparable(7), SWCHash(), eastl::equal_to_2<SetWidget, SetWidgetComparable>());
+        VERIFY(itfc->mX == 7);
 
-		itf = ihmSW1.erase(itf, itf2);
-		VERIFY(itf != ihmSW1.end());
-		VERIFY(ihmSW1.validate_iterator(itf) == (isf_valid | isf_current | isf_can_dereference));
 
-		itf = ihmSW1.find(SetWidget(19));
-		VERIFY(itf == ihmSW1.end());
+        // iterator  erase(iterator);
+        // iterator  erase(iterator, iterator);
+        // size_type erase(const key_type&);
 
+        eastl_size_t n = ihmSW1.erase(SetWidget(99999));
+        VERIFY(n == 0);
 
-		// eastl::pair<iterator, iterator>             equal_range(const key_type& k);
-		// eastl::pair<const_iterator, const_iterator> equal_range(const key_type& k) const;
+        n = ihmSW1.erase(SetWidget(17));
+        VERIFY(n == 1);
 
-		eastl::pair<IHM_SW::iterator, IHM_SW::iterator> p = ihmSW1.equal_range(SetWidget(1));
-		VERIFY(p.first != ihmSW1.end());
-		VERIFY(p.second != ihmSW1.end());
+        itf = ihmSW1.find(SetWidget(18));
+        VERIFY(itf != ihmSW1.end());
+        VERIFY(ihmSW1.validate_iterator(itf) == (isf_valid | isf_current | isf_can_dereference));
 
-		eastl::pair<IHM_SW::const_iterator, IHM_SW::const_iterator> pc = ihmSW1Const.equal_range(SetWidget(1));
-		VERIFY(pc.first != ihmSW1Const.end());
-		VERIFY(pc.second != ihmSW1Const.end());
+        itf = ihmSW1.erase(itf);
+        VERIFY(itf != ihmSW1.end());
+        VERIFY(ihmSW1.validate_iterator(itf) == (isf_valid | isf_current | isf_can_dereference));
 
+        itf = ihmSW1.find(SetWidget(18));
+        VERIFY(itf == ihmSW1.end());
 
-		// void clear();
-		// bool validate() const;
-		// int validate_iterator(const_iterator i) const;
+        itf = ihmSW1.find(SetWidget(19));
+        VERIFY(itf != ihmSW1.end());
 
-		IHM_SW::iterator itTest;
-		int iresult = ihmSW1.validate_iterator(itTest);
-		VERIFY(iresult == isf_none);
+        IHM_SW::iterator itf2(itf);
+        eastl::advance(itf2, 7);
+        VERIFY(itf2 != ihmSW1.end());
+        VERIFY(ihmSW1.validate_iterator(itf2) == (isf_valid | isf_current | isf_can_dereference));
 
-		itTest = ihmSW1.begin();
-		iresult = ihmSW1.validate_iterator(itTest);
-		VERIFY(iresult == (isf_valid | isf_current | isf_can_dereference));
+        itf = ihmSW1.erase(itf, itf2);
+        VERIFY(itf != ihmSW1.end());
+        VERIFY(ihmSW1.validate_iterator(itf) == (isf_valid | isf_current | isf_can_dereference));
 
-		itTest = ihmSW1.end();
-		iresult = ihmSW1.validate_iterator(itTest);
-		VERIFY(iresult == (isf_valid | isf_current));
+        itf = ihmSW1.find(SetWidget(19));
+        VERIFY(itf == ihmSW1.end());
 
-		ihmSW1.clear();
-		ihmSW2.clear();
-		VERIFY(ihmSW1.validate());
-		VERIFY(ihmSW2.validate());
 
-		itTest = ihmSW1.begin();
-		iresult = ihmSW1.validate_iterator(itTest);
-		VERIFY(iresult == (isf_valid | isf_current));
-	}
+        // eastl::pair<iterator, iterator>             equal_range(const key_type& k);
+        // eastl::pair<const_iterator, const_iterator> equal_range(const key_type& k) const;
 
+        eastl::pair<IHM_SW::iterator, IHM_SW::iterator> p = ihmSW1.equal_range(SetWidget(1));
+        VERIFY(p.first != ihmSW1.end());
+        VERIFY(p.second != ihmSW1.end());
 
-	{
-		// Test intrusive_hash_map
+        eastl::pair<IHM_SW::const_iterator, IHM_SW::const_iterator> pc = ihmSW1Const.equal_range(SetWidget(1));
+        VERIFY(pc.first != ihmSW1Const.end());
+        VERIFY(pc.second != ihmSW1Const.end());
 
-		const size_t kBucketCount = 37;
-		typedef intrusive_hash_map<int, MapWidget, kBucketCount> IHM_MW;
 
-		const size_t kArraySize = 100;
-		MapWidget mwArray[kArraySize];
+        // void clear();
+        // bool validate() const;
+        // int validate_iterator(const_iterator i) const;
 
-		int nExpectedKeySum = 0; // We use this as a checksum in order to do validity checks below.
+        IHM_SW::iterator itTest;
+        int iresult = ihmSW1.validate_iterator(itTest);
+        VERIFY(iresult == isf_none);
 
-		for(size_t i = 0; i < kArraySize; i++)
-		{
-			mwArray[i].mKey  = (int)i;
-			mwArray[i].mX    = (int)i;
-			nExpectedKeySum += (int)i;
-		}
+        itTest = ihmSW1.begin();
+        iresult = ihmSW1.validate_iterator(itTest);
+        VERIFY(iresult == (isf_valid | isf_current | isf_can_dereference));
 
+        itTest = ihmSW1.end();
+        iresult = ihmSW1.validate_iterator(itTest);
+        VERIFY(iresult == (isf_valid | isf_current));
 
-		// intrusive_hashtable(const Hash&, const Equal&);
-		// void swap(this_type& x);
-		// size_type size() const;
-		// bool empty() const;
-		// size_type bucket_count() const;
-		// size_type bucket_size(size_type n) const;
-		// float load_factor() const;
-		// void clear();
-		// bool validate() const;
+        ihmSW1.clear();
+        ihmSW2.clear();
+        VERIFY(ihmSW1.validate());
+        VERIFY(ihmSW2.validate());
 
-		IHM_MW ihmMW1;
-		IHM_MW ihmMW2;
+        itTest = ihmSW1.begin();
+        iresult = ihmSW1.validate_iterator(itTest);
+        VERIFY(iresult == (isf_valid | isf_current));
+    }
 
-		VERIFY(ihmMW1.size() == 0);
-		VERIFY(ihmMW1.empty());
-		VERIFY(ihmMW1.validate());
-		VERIFY(ihmMW2.validate());
 
-		ihmMW1.swap(ihmMW2);
+    {
+        // Test intrusive_hash_map
 
-		VERIFY(ihmMW1.validate());
-		VERIFY(ihmMW2.validate());
-		VERIFY(ihmMW2.bucket_count() == kBucketCount);
-		VERIFY(ihmMW2.bucket_size(0) == 0);
-		VERIFY(ihmMW2.bucket_size(kBucketCount - 1) == 0);
-		VERIFY(ihmMW1.load_factor() == 0.f);
-		VERIFY(ihmMW2.load_factor() == 0.f);
+        const size_t kBucketCount = 37;
+        typedef intrusive_hash_map<int, MapWidget, kBucketCount> IHM_MW;
 
-		ihmMW1.clear();
-		VERIFY(ihmMW1.validate());
-		VERIFY(ihmMW1.begin() == ihmMW1.end());
+        const size_t kArraySize = 100;
+        MapWidget mwArray[kArraySize];
 
+        int nExpectedKeySum = 0; // We use this as a checksum in order to do validity checks below.
 
-		// void insert(InputIterator first, InputIterator last);
-		// insert_return_type insert(value_type& value);
-		// void swap(this_type& x);
-		// void clear();
+        for(size_t i = 0; i < kArraySize; i++) {
+            mwArray[i].mKey  = (int)i;
+            mwArray[i].mX    = (int)i;
+            nExpectedKeySum += (int)i;
+        }
 
-		ihmMW1.clear();
-		ihmMW1.insert(mwArray, mwArray + (kArraySize - 10));
-		for(int i = 0; i < 10; i++) // insert the remaining elements via the other insert function.
-		{
-			pair<IHM_MW::iterator, bool> result = ihmMW1.insert(mwArray[(kArraySize - 10) + i]);
-			VERIFY(result.second == true);
-		}
 
-		VERIFY(ihmMW1.size() == kArraySize);
-		VERIFY(ihmMW1.validate());
+        // intrusive_hashtable(const Hash&, const Equal&);
+        // void swap(this_type& x);
+        // size_type size() const;
+        // bool empty() const;
+        // size_type bucket_count() const;
+        // size_type bucket_size(size_type n) const;
+        // float load_factor() const;
+        // void clear();
+        // bool validate() const;
 
-		for(size_t i = 0; i < kArraySize; i++)
-		{
-			// Try to re-insert the elements. All insertions should fail.
-			pair<IHM_MW::iterator, bool> result = ihmMW1.insert(mwArray[i]);
-			VERIFY(result.second == false);
-		}
+        IHM_MW ihmMW1;
+        IHM_MW ihmMW2;
 
-		VERIFY(ihmMW1.size() == kArraySize);
-		VERIFY(!ihmMW1.empty());
-		VERIFY(ihmMW1.validate());
+        VERIFY(ihmMW1.size() == 0);
+        VERIFY(ihmMW1.empty());
+        VERIFY(ihmMW1.validate());
+        VERIFY(ihmMW2.validate());
 
-		ihmMW2.clear();
-		ihmMW1.swap(ihmMW2);
+        ihmMW1.swap(ihmMW2);
 
+        VERIFY(ihmMW1.validate());
+        VERIFY(ihmMW2.validate());
+        VERIFY(ihmMW2.bucket_count() == kBucketCount);
+        VERIFY(ihmMW2.bucket_size(0) == 0);
+        VERIFY(ihmMW2.bucket_size(kBucketCount - 1) == 0);
+        VERIFY(ihmMW1.load_factor() == 0.f);
+        VERIFY(ihmMW2.load_factor() == 0.f);
 
-		// size_type size() const;
-		// bool empty() const;
-		// size_type count(const key_type& k) const;
-		// size_type bucket_size(size_type n) const;
-		// float load_factor() const;
-		// size_type bucket(const key_type& k) const
+        ihmMW1.clear();
+        VERIFY(ihmMW1.validate());
+        VERIFY(ihmMW1.begin() == ihmMW1.end());
 
-		VERIFY(ihmMW1.validate());
-		VERIFY(ihmMW2.validate());
-		VERIFY(ihmMW1.size() == 0);
-		VERIFY(ihmMW1.empty());
-		VERIFY(ihmMW2.size() == kArraySize);
-		VERIFY(!ihmMW2.empty());
-		VERIFY(ihmMW1.load_factor() == 0.f);
-		VERIFY(ihmMW2.load_factor() > 2.f);
-		VERIFY(ihmMW1.count(0) == 0);
-		VERIFY(ihmMW1.count(999999) == 0);
-		VERIFY(ihmMW2.count(0) == 1);
-		VERIFY(ihmMW2.count(999999) == 0);
-		VERIFY(ihmMW2.bucket_size(0) == 3);     // We just happen to know this should be so based on the distribution.
-		VERIFY(ihmMW2.bucket(13)    == (13    % kBucketCount)); // We know this is so because our hash function simply returns n.
-		VERIFY(ihmMW2.bucket(10000) == (10000 % kBucketCount)); // We know this is so because our hash function simply returns n.
-   
 
-		// iterator begin();
-		// const_iterator begin() const;
+        // void insert(InputIterator first, InputIterator last);
+        // insert_return_type insert(value_type& value);
+        // void swap(this_type& x);
+        // void clear();
 
-		ihmMW1.swap(ihmMW2);
-		int nSum = 0; 
+        ihmMW1.clear();
+        ihmMW1.insert(mwArray, mwArray + (kArraySize - 10));
 
-		for(IHM_MW::iterator it = ihmMW1.begin(); it != ihmMW1.end(); ++it)
-		{
-			IHM_MW::value_type& v = *it;
+        for(int i = 0; i < 10; i++) { // insert the remaining elements via the other insert function.
+            pair<IHM_MW::iterator, bool> result = ihmMW1.insert(mwArray[(kArraySize - 10) + i]);
+            VERIFY(result.second == true);
+        }
 
-			VERIFY(v.mKey == v.mX); // We intentionally made this so above.
-			nSum += v.mKey;
+        VERIFY(ihmMW1.size() == kArraySize);
+        VERIFY(ihmMW1.validate());
 
-			const int iresult = ihmMW1.validate_iterator(it);
-			VERIFY(iresult == (isf_valid | isf_current | isf_can_dereference));
+        for(size_t i = 0; i < kArraySize; i++) {
+            // Try to re-insert the elements. All insertions should fail.
+            pair<IHM_MW::iterator, bool> result = ihmMW1.insert(mwArray[i]);
+            VERIFY(result.second == false);
+        }
 
-			IHM_MW::iterator itf = ihmMW1.find(v.mKey);
-			VERIFY(itf == it);
-		}
+        VERIFY(ihmMW1.size() == kArraySize);
+        VERIFY(!ihmMW1.empty());
+        VERIFY(ihmMW1.validate());
 
-		VERIFY(nSum == nExpectedKeySum);
+        ihmMW2.clear();
+        ihmMW1.swap(ihmMW2);
 
 
-		// iterator end();
-		// const_iterator end() const;
+        // size_type size() const;
+        // bool empty() const;
+        // size_type count(const key_type& k) const;
+        // size_type bucket_size(size_type n) const;
+        // float load_factor() const;
+        // size_type bucket(const key_type& k) const
 
-		const IHM_MW& ihmMW1Const = ihmMW1;
+        VERIFY(ihmMW1.validate());
+        VERIFY(ihmMW2.validate());
+        VERIFY(ihmMW1.size() == 0);
+        VERIFY(ihmMW1.empty());
+        VERIFY(ihmMW2.size() == kArraySize);
+        VERIFY(!ihmMW2.empty());
+        VERIFY(ihmMW1.load_factor() == 0.f);
+        VERIFY(ihmMW2.load_factor() > 2.f);
+        VERIFY(ihmMW1.count(0) == 0);
+        VERIFY(ihmMW1.count(999999) == 0);
+        VERIFY(ihmMW2.count(0) == 1);
+        VERIFY(ihmMW2.count(999999) == 0);
+        VERIFY(ihmMW2.bucket_size(0) == 3);     // We just happen to know this should be so based on the distribution.
+        VERIFY(ihmMW2.bucket(13)    == (13    % kBucketCount)); // We know this is so because our hash function simply returns n.
+        VERIFY(ihmMW2.bucket(10000) == (10000 % kBucketCount)); // We know this is so because our hash function simply returns n.
 
-		for(IHM_MW::const_iterator itc = ihmMW1Const.begin(); itc != ihmMW1Const.end(); ++itc)
-		{
-			const IHM_MW::value_type& v = *itc;
 
-			VERIFY(v.mKey == v.mX); // We intentionally made this so above.
+        // iterator begin();
+        // const_iterator begin() const;
 
-			IHM_MW::const_iterator itf = ihmMW1Const.find(v.mKey);
-			VERIFY(itf == itc);
-		}
+        ihmMW1.swap(ihmMW2);
+        int nSum = 0;
 
+        for(IHM_MW::iterator it = ihmMW1.begin(); it != ihmMW1.end(); ++it) {
+            IHM_MW::value_type &v = *it;
 
-		// local_iterator begin(size_type n)
-		// local_iterator end(size_type)
+            VERIFY(v.mKey == v.mX); // We intentionally made this so above.
+            nSum += v.mKey;
 
-		for(IHM_MW::local_iterator itl = ihmMW1.begin(5); itl != ihmMW1.end(5); ++itl)
-		{
-			IHM_MW::value_type& v = *itl;
+            const int iresult = ihmMW1.validate_iterator(it);
+            VERIFY(iresult == (isf_valid | isf_current | isf_can_dereference));
 
-			VERIFY(v.mKey == v.mX); // We intentionally made this so above.
-		}
+            IHM_MW::iterator itf = ihmMW1.find(v.mKey);
+            VERIFY(itf == it);
+        }
 
+        VERIFY(nSum == nExpectedKeySum);
 
-		// const_local_iterator begin(size_type n) const
-		// const_local_iterator end(size_type) const
 
-		for(IHM_MW::const_local_iterator itlc = ihmMW1Const.begin(5); itlc != ihmMW1Const.end(5); ++itlc)
-		{
-			const IHM_MW::value_type& v = *itlc;
+        // iterator end();
+        // const_iterator end() const;
 
-			VERIFY(v.mKey == v.mX); // We intentionally made this so above.
-		}
+        const IHM_MW &ihmMW1Const = ihmMW1;
 
+        for(IHM_MW::const_iterator itc = ihmMW1Const.begin(); itc != ihmMW1Const.end(); ++itc) {
+            const IHM_MW::value_type &v = *itc;
 
-		// iterator       find(const key_type& k);
-		// const_iterator find(const key_type& k) const;
+            VERIFY(v.mKey == v.mX); // We intentionally made this so above.
 
-		IHM_MW::iterator itf = ihmMW1.find(99999);
-		VERIFY(itf == ihmMW1.end());
+            IHM_MW::const_iterator itf = ihmMW1Const.find(v.mKey);
+            VERIFY(itf == itc);
+        }
 
-		IHM_MW::const_iterator itfc = ihmMW1Const.find(99999);
-		VERIFY(itfc == ihmMW1Const.end());
 
+        // local_iterator begin(size_type n)
+        // local_iterator end(size_type)
 
-		// iterator       find_as(const U& u);
-		// const_iterator find_as(const U& u) const;
+        for(IHM_MW::local_iterator itl = ihmMW1.begin(5); itl != ihmMW1.end(5); ++itl) {
+            IHM_MW::value_type &v = *itl;
 
-		itf = ihmMW1.find_as(7.f);
-		VERIFY(itf->mKey == 7);
+            VERIFY(v.mKey == v.mX); // We intentionally made this so above.
+        }
 
-		itfc = ihmMW1Const.find_as(7.f);
-		VERIFY(itfc->mKey == 7);
 
+        // const_local_iterator begin(size_type n) const
+        // const_local_iterator end(size_type) const
 
-		// iterator       find_as(const U& u, UHash uhash, BinaryPredicate predicate);
-		// const_iterator find_as(const U& u, UHash uhash, BinaryPredicate predicate) const;
+        for(IHM_MW::const_local_iterator itlc = ihmMW1Const.begin(5); itlc != ihmMW1Const.end(5); ++itlc) {
+            const IHM_MW::value_type &v = *itlc;
 
-		itf = ihmMW1.find_as(7.f, eastl::hash<float>(), eastl::equal_to_2<int, float>());
-		VERIFY(itf->mKey == 7);
+            VERIFY(v.mKey == v.mX); // We intentionally made this so above.
+        }
 
-		itfc = ihmMW1Const.find_as(7.f, eastl::hash<float>(), eastl::equal_to_2<int, float>());
-		VERIFY(itfc->mKey == 7);
 
+        // iterator       find(const key_type& k);
+        // const_iterator find(const key_type& k) const;
 
-		// iterator  erase(iterator);
-		// iterator  erase(iterator, iterator);
-		// size_type erase(const key_type&);
+        IHM_MW::iterator itf = ihmMW1.find(99999);
+        VERIFY(itf == ihmMW1.end());
 
-		eastl_size_t n = ihmMW1.erase(99999);
-		VERIFY(n == 0);
+        IHM_MW::const_iterator itfc = ihmMW1Const.find(99999);
+        VERIFY(itfc == ihmMW1Const.end());
 
-		n = ihmMW1.erase(17);
-		VERIFY(n == 1);
 
-		itf = ihmMW1.find(18);
-		VERIFY(itf != ihmMW1.end());
-		VERIFY(ihmMW1.validate_iterator(itf) == (isf_valid | isf_current | isf_can_dereference));
+        // iterator       find_as(const U& u);
+        // const_iterator find_as(const U& u) const;
 
-		itf = ihmMW1.erase(itf);
-		VERIFY(itf != ihmMW1.end());
-		VERIFY(ihmMW1.validate_iterator(itf) == (isf_valid | isf_current | isf_can_dereference));
+        itf = ihmMW1.find_as(7.f);
+        VERIFY(itf->mKey == 7);
 
-		itf = ihmMW1.find(18);
-		VERIFY(itf == ihmMW1.end());
+        itfc = ihmMW1Const.find_as(7.f);
+        VERIFY(itfc->mKey == 7);
 
-		itf = ihmMW1.find(19);
-		VERIFY(itf != ihmMW1.end());
 
-		IHM_MW::iterator itf2(itf);
-		eastl::advance(itf2, 7);
-		VERIFY(itf2 != ihmMW1.end());
-		VERIFY(ihmMW1.validate_iterator(itf2) == (isf_valid | isf_current | isf_can_dereference));
+        // iterator       find_as(const U& u, UHash uhash, BinaryPredicate predicate);
+        // const_iterator find_as(const U& u, UHash uhash, BinaryPredicate predicate) const;
 
-		itf = ihmMW1.erase(itf, itf2);
-		VERIFY(itf != ihmMW1.end());
-		VERIFY(ihmMW1.validate_iterator(itf) == (isf_valid | isf_current | isf_can_dereference));
+        itf = ihmMW1.find_as(7.f, eastl::hash<float>(), eastl::equal_to_2<int, float>());
+        VERIFY(itf->mKey == 7);
 
-		itf = ihmMW1.find(19);
-		VERIFY(itf == ihmMW1.end());
+        itfc = ihmMW1Const.find_as(7.f, eastl::hash<float>(), eastl::equal_to_2<int, float>());
+        VERIFY(itfc->mKey == 7);
 
 
-		// eastl::pair<iterator, iterator>             equal_range(const key_type& k);
-		// eastl::pair<const_iterator, const_iterator> equal_range(const key_type& k) const;
+        // iterator  erase(iterator);
+        // iterator  erase(iterator, iterator);
+        // size_type erase(const key_type&);
 
-		eastl::pair<IHM_MW::iterator, IHM_MW::iterator> p = ihmMW1.equal_range(1);
-		VERIFY(p.first != ihmMW1.end());
-		VERIFY(p.second != ihmMW1.end());
+        eastl_size_t n = ihmMW1.erase(99999);
+        VERIFY(n == 0);
 
-		eastl::pair<IHM_MW::const_iterator, IHM_MW::const_iterator> pc = ihmMW1Const.equal_range(1);
-		VERIFY(pc.first != ihmMW1Const.end());
-		VERIFY(pc.second != ihmMW1Const.end());
+        n = ihmMW1.erase(17);
+        VERIFY(n == 1);
 
+        itf = ihmMW1.find(18);
+        VERIFY(itf != ihmMW1.end());
+        VERIFY(ihmMW1.validate_iterator(itf) == (isf_valid | isf_current | isf_can_dereference));
 
-		// void clear();
-		// bool validate() const;
-		// int validate_iterator(const_iterator i) const;
+        itf = ihmMW1.erase(itf);
+        VERIFY(itf != ihmMW1.end());
+        VERIFY(ihmMW1.validate_iterator(itf) == (isf_valid | isf_current | isf_can_dereference));
 
-		IHM_MW::iterator itTest;
-		int iresult = ihmMW1.validate_iterator(itTest);
-		VERIFY(iresult == isf_none);
+        itf = ihmMW1.find(18);
+        VERIFY(itf == ihmMW1.end());
 
-		itTest = ihmMW1.begin();
-		iresult = ihmMW1.validate_iterator(itTest);
-		VERIFY(iresult == (isf_valid | isf_current | isf_can_dereference));
+        itf = ihmMW1.find(19);
+        VERIFY(itf != ihmMW1.end());
 
-		itTest = ihmMW1.end();
-		iresult = ihmMW1.validate_iterator(itTest);
-		VERIFY(iresult == (isf_valid | isf_current));
+        IHM_MW::iterator itf2(itf);
+        eastl::advance(itf2, 7);
+        VERIFY(itf2 != ihmMW1.end());
+        VERIFY(ihmMW1.validate_iterator(itf2) == (isf_valid | isf_current | isf_can_dereference));
 
-		ihmMW1.clear();
-		ihmMW2.clear();
-		VERIFY(ihmMW1.validate());
-		VERIFY(ihmMW2.validate());
+        itf = ihmMW1.erase(itf, itf2);
+        VERIFY(itf != ihmMW1.end());
+        VERIFY(ihmMW1.validate_iterator(itf) == (isf_valid | isf_current | isf_can_dereference));
 
-		itTest = ihmMW1.begin();
-		iresult = ihmMW1.validate_iterator(itTest);
-		VERIFY(iresult == (isf_valid | isf_current));
-	}
+        itf = ihmMW1.find(19);
+        VERIFY(itf == ihmMW1.end());
 
 
-	{
-		// Test case of single bucket.
-		eastl::intrusive_hash_set<SetWidget, 1, SWHash> hs;
-		SetWidget node1, node2, node3;
-		 
-		node1.mX = 1;
-		node2.mX = 2;
-		node3.mX = 3;
-		 
-		hs.insert(node1);
-		hs.insert(node2);
-		hs.insert(node3);
+        // eastl::pair<iterator, iterator>             equal_range(const key_type& k);
+        // eastl::pair<const_iterator, const_iterator> equal_range(const key_type& k) const;
 
-		const eastl_size_t removeCount = hs.erase(node3);
-		VERIFY(removeCount == 1); 
-	}
+        eastl::pair<IHM_MW::iterator, IHM_MW::iterator> p = ihmMW1.equal_range(1);
+        VERIFY(p.first != ihmMW1.end());
+        VERIFY(p.second != ihmMW1.end());
 
+        eastl::pair<IHM_MW::const_iterator, IHM_MW::const_iterator> pc = ihmMW1Const.equal_range(1);
+        VERIFY(pc.first != ihmMW1Const.end());
+        VERIFY(pc.second != ihmMW1Const.end());
 
-	{
-		// Test intrusive_hashtable_iterator(value_type* pNode, value_type** pBucket = NULL)
-		eastl::intrusive_hash_set<SetWidget, 37, SWHash> hs;
-		SetWidget node1, node2, node3;
-		 
-		node1.mX = 1;
-		node2.mX = 2;
-		node3.mX = 3;
 
-		hs.insert(node1);
-		hs.insert(node2);
-		hs.insert(node3);
+        // void clear();
+        // bool validate() const;
+        // int validate_iterator(const_iterator i) const;
 
-		VERIFY(hs.validate());
+        IHM_MW::iterator itTest;
+        int iresult = ihmMW1.validate_iterator(itTest);
+        VERIFY(iresult == isf_none);
 
-		hs.remove(node1);
-		hs.remove(node2);
-		hs.remove(node3);
-		
-		VERIFY(hs.validate());
+        itTest = ihmMW1.begin();
+        iresult = ihmMW1.validate_iterator(itTest);
+        VERIFY(iresult == (isf_valid | isf_current | isf_can_dereference));
 
-		hs.insert(node1);
-		hs.insert(node2);
-		hs.insert(node3);
+        itTest = ihmMW1.end();
+        iresult = ihmMW1.validate_iterator(itTest);
+        VERIFY(iresult == (isf_valid | isf_current));
 
-		VERIFY(hs.validate());
-	}
+        ihmMW1.clear();
+        ihmMW2.clear();
+        VERIFY(ihmMW1.validate());
+        VERIFY(ihmMW2.validate());
 
-	return nErrorCount;
+        itTest = ihmMW1.begin();
+        iresult = ihmMW1.validate_iterator(itTest);
+        VERIFY(iresult == (isf_valid | isf_current));
+    }
+
+
+    {
+        // Test case of single bucket.
+        eastl::intrusive_hash_set<SetWidget, 1, SWHash> hs;
+        SetWidget node1, node2, node3;
+
+        node1.mX = 1;
+        node2.mX = 2;
+        node3.mX = 3;
+
+        hs.insert(node1);
+        hs.insert(node2);
+        hs.insert(node3);
+
+        const eastl_size_t removeCount = hs.erase(node3);
+        VERIFY(removeCount == 1);
+    }
+
+
+    {
+        // Test intrusive_hashtable_iterator(value_type* pNode, value_type** pBucket = NULL)
+        eastl::intrusive_hash_set<SetWidget, 37, SWHash> hs;
+        SetWidget node1, node2, node3;
+
+        node1.mX = 1;
+        node2.mX = 2;
+        node3.mX = 3;
+
+        hs.insert(node1);
+        hs.insert(node2);
+        hs.insert(node3);
+
+        VERIFY(hs.validate());
+
+        hs.remove(node1);
+        hs.remove(node2);
+        hs.remove(node3);
+
+        VERIFY(hs.validate());
+
+        hs.insert(node1);
+        hs.insert(node2);
+        hs.insert(node3);
+
+        VERIFY(hs.validate());
+    }
+
+    return nErrorCount;
 }
 
 

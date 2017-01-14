@@ -7,10 +7,13 @@
 #ifndef EASTDC_EAPROCESS_H
 #define EASTDC_EAPROCESS_H
 
-namespace EA {
-namespace StdC {
+namespace EA
+{
+    namespace StdC
+    {
 
-}} // namespace EA::StdC
+    }
+} // namespace EA::StdC
 
 
 #endif  // EASTDC_EAPROCESS_H
